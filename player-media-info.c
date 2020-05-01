@@ -9,13 +9,11 @@
 G_DEFINE_ABSTRACT_TYPE (PlayerStreamInfo, player_stream_info,
                         G_TYPE_OBJECT);
 
-static void
-player_stream_info_init(PlayerStreamInfo *sinfo) {
+static void player_stream_info_init(PlayerStreamInfo *sinfo) {
     sinfo->stream_index = -1;
 }
 
-static void
-player_stream_info_finalize(GObject *object) {
+static void player_stream_info_finalize(GObject *object) {
     PlayerStreamInfo *stream_info = GST_PLAYER_STREAM_INFO (object);
 
     //g_free (stream_info->codec);
@@ -30,8 +28,7 @@ player_stream_info_finalize(GObject *object) {
     G_OBJECT_CLASS (player_stream_info_parent_class)->finalize(object);
 }
 
-static void
-player_stream_info_class_init(PlayerStreamInfoClass *klass) {
+static void player_stream_info_class_init(PlayerStreamInfoClass *klass) {
     GObjectClass *gobject_class = (GObjectClass *) klass;
 
     gobject_class->finalize = player_stream_info_finalize;
@@ -45,8 +42,7 @@ player_stream_info_class_init(PlayerStreamInfoClass *klass) {
  *
  * Returns: the stream index of this stream.
  */
-gint
-player_stream_info_get_index(const PlayerStreamInfo *info) {
+gint player_stream_info_get_index(const PlayerStreamInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_STREAM_INFO(info), -1);
 
     return info->stream_index;
@@ -61,8 +57,7 @@ player_stream_info_get_index(const PlayerStreamInfo *info) {
  *
  * Returns: a human readable name
  */
-const gchar *
-player_stream_info_get_stream_type(const PlayerStreamInfo *info) {
+const gchar *player_stream_info_get_stream_type(const PlayerStreamInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_STREAM_INFO(info), NULL);
 
     if (GST_IS_PLAYER_AUDIO_INFO (info))
@@ -78,8 +73,7 @@ player_stream_info_get_stream_type(const PlayerStreamInfo *info) {
  *
  * Returns: (transfer none): the tags contained in this stream.
  */
-GstTagList *
-player_stream_info_get_tags(const PlayerStreamInfo *info) {
+GstTagList *player_stream_info_get_tags(const PlayerStreamInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_STREAM_INFO(info), NULL);
 
     return info->tags;
@@ -93,8 +87,7 @@ player_stream_info_get_tags(const PlayerStreamInfo *info) {
  *
  * Returns: codec string or NULL on unknown.
  */
-const gchar *
-player_stream_info_get_codec(const PlayerStreamInfo *info) {
+const gchar *player_stream_info_get_codec(const PlayerStreamInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_STREAM_INFO(info), NULL);
 
     return NULL;//info->codec;
@@ -106,8 +99,7 @@ player_stream_info_get_codec(const PlayerStreamInfo *info) {
  *
  * Returns: (transfer none): the #GstCaps of the stream.
  */
-GstCaps *
-player_stream_info_get_caps(const PlayerStreamInfo *info) {
+GstCaps *player_stream_info_get_caps(const PlayerStreamInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_STREAM_INFO(info), NULL);
 
     return info->caps;
@@ -118,16 +110,14 @@ player_stream_info_get_caps(const PlayerStreamInfo *info) {
 G_DEFINE_TYPE (PlayerAudioInfo, player_audio_info,
                GST_TYPE_PLAYER_STREAM_INFO);
 
-static void
-player_audio_info_init(PlayerAudioInfo *info) {
+static void player_audio_info_init(PlayerAudioInfo *info) {
     info->channels = 0;
     info->sample_rate = 0;
     info->bitrate = -1;
     info->max_bitrate = -1;
 }
 
-static void
-player_audio_info_finalize(GObject *object) {
+static void player_audio_info_finalize(GObject *object) {
     PlayerAudioInfo *info = GST_PLAYER_AUDIO_INFO (object);
 
     g_free(info->language);
@@ -135,8 +125,7 @@ player_audio_info_finalize(GObject *object) {
     G_OBJECT_CLASS (player_audio_info_parent_class)->finalize(object);
 }
 
-static void
-player_audio_info_class_init(PlayerAudioInfoClass *klass) {
+static void player_audio_info_class_init(PlayerAudioInfoClass *klass) {
     GObjectClass *gobject_class = (GObjectClass *) klass;
 
     gobject_class->finalize = player_audio_info_finalize;
@@ -148,8 +137,7 @@ player_audio_info_class_init(PlayerAudioInfoClass *klass) {
  *
  * Returns: the language of the stream, or NULL if unknown.
  */
-const gchar *
-player_audio_info_get_language(const PlayerAudioInfo *info) {
+const gchar *player_audio_info_get_language(const PlayerAudioInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_AUDIO_INFO(info), NULL);
 
     return info->language;
@@ -161,8 +149,7 @@ player_audio_info_get_language(const PlayerAudioInfo *info) {
  *
  * Returns: the number of audio channels in #PlayerAudioInfo.
  */
-gint
-player_audio_info_get_channels(const PlayerAudioInfo *info) {
+gint player_audio_info_get_channels(const PlayerAudioInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_AUDIO_INFO(info), 0);
 
     return info->channels;
@@ -174,8 +161,7 @@ player_audio_info_get_channels(const PlayerAudioInfo *info) {
  *
  * Returns: the audio sample rate in #PlayerAudioInfo.
  */
-gint
-player_audio_info_get_sample_rate(const PlayerAudioInfo *info) {
+gint player_audio_info_get_sample_rate(const PlayerAudioInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_AUDIO_INFO(info), 0);
 
     return info->sample_rate;
@@ -187,8 +173,7 @@ player_audio_info_get_sample_rate(const PlayerAudioInfo *info) {
  *
  * Returns: the audio bitrate in #PlayerAudioInfo.
  */
-gint
-player_audio_info_get_bitrate(const PlayerAudioInfo *info) {
+gint player_audio_info_get_bitrate(const PlayerAudioInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_AUDIO_INFO(info), -1);
 
     return info->bitrate;
@@ -200,8 +185,7 @@ player_audio_info_get_bitrate(const PlayerAudioInfo *info) {
  *
  * Returns: the audio maximum bitrate in #PlayerAudioInfo.
  */
-gint
-player_audio_info_get_max_bitrate(const PlayerAudioInfo *info) {
+gint player_audio_info_get_max_bitrate(const PlayerAudioInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_AUDIO_INFO(info), -1);
 
     return info->max_bitrate;
@@ -210,15 +194,13 @@ player_audio_info_get_max_bitrate(const PlayerAudioInfo *info) {
 /* Global media information */
 G_DEFINE_TYPE (PlayerMediaInfo, player_media_info, G_TYPE_OBJECT);
 
-static void
-player_media_info_init(PlayerMediaInfo *info) {
+static void player_media_info_init(PlayerMediaInfo *info) {
     info->duration = -1;
     info->is_live = FALSE;
     info->seekable = FALSE;
 }
 
-static void
-player_media_info_finalize(GObject *object) {
+static void player_media_info_finalize(GObject *object) {
     PlayerMediaInfo *info = GST_PLAYER_MEDIA_INFO (object);
 
     g_free(info->uri);
@@ -248,20 +230,17 @@ player_media_info_finalize(GObject *object) {
     G_OBJECT_CLASS (player_media_info_parent_class)->finalize(object);
 }
 
-static void
-player_media_info_class_init(PlayerMediaInfoClass *klass) {
+static void player_media_info_class_init(PlayerMediaInfoClass *klass) {
     GObjectClass *oclass = (GObjectClass *) klass;
 
     oclass->finalize = player_media_info_finalize;
 }
 
-static PlayerAudioInfo *
-player_audio_info_new(void) {
+static PlayerAudioInfo *player_audio_info_new(void) {
     return g_object_new(GST_TYPE_PLAYER_AUDIO_INFO, NULL);
 }
 
-static PlayerStreamInfo *
-player_audio_info_copy(PlayerAudioInfo *ref) {
+static PlayerStreamInfo *player_audio_info_copy(PlayerAudioInfo *ref) {
     PlayerAudioInfo *ret;
 
     ret = player_audio_info_new();
@@ -277,8 +256,7 @@ player_audio_info_copy(PlayerAudioInfo *ref) {
     return (PlayerStreamInfo *) ret;
 }
 
-PlayerStreamInfo *
-player_stream_info_copy(PlayerStreamInfo *ref) {
+PlayerStreamInfo *player_stream_info_copy(PlayerStreamInfo *ref) {
     PlayerStreamInfo *info = NULL;
 
     if (!ref)
@@ -303,8 +281,7 @@ player_stream_info_copy(PlayerStreamInfo *ref) {
     return info;
 }
 
-PlayerMediaInfo *
-player_media_info_copy(PlayerMediaInfo *ref) {
+PlayerMediaInfo *player_media_info_copy(PlayerMediaInfo *ref) {
     GList *l;
     PlayerMediaInfo *info;
 
@@ -340,8 +317,7 @@ player_media_info_copy(PlayerMediaInfo *ref) {
     return info;
 }
 
-PlayerStreamInfo *
-player_stream_info_new(gint stream_index, GType type) {
+PlayerStreamInfo *player_stream_info_new(gint stream_index, GType type) {
     PlayerStreamInfo *info = NULL;
 
     if (type == GST_TYPE_PLAYER_AUDIO_INFO) {
@@ -353,8 +329,7 @@ player_stream_info_new(gint stream_index, GType type) {
     return info;
 }
 
-PlayerMediaInfo *
-player_media_info_new(const gchar *uri) {
+PlayerMediaInfo *player_media_info_new(const gchar *uri) {
     PlayerMediaInfo *info;
 
     g_return_val_if_fail (uri != NULL, NULL);
@@ -371,8 +346,7 @@ player_media_info_new(const gchar *uri) {
  *
  * Returns: the URI associated with #PlayerMediaInfo.
  */
-const gchar *
-player_media_info_get_uri(const PlayerMediaInfo *info) {
+const gchar *player_media_info_get_uri(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), NULL);
 
     return info->uri;
@@ -384,8 +358,7 @@ player_media_info_get_uri(const PlayerMediaInfo *info) {
  *
  * Returns: %TRUE if the media is seekable.
  */
-gboolean
-player_media_info_is_seekable(const PlayerMediaInfo *info) {
+gboolean player_media_info_is_seekable(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), FALSE);
 
     return info->seekable;
@@ -397,8 +370,7 @@ player_media_info_is_seekable(const PlayerMediaInfo *info) {
  *
  * Returns: %TRUE if the media is live.
  */
-gboolean
-player_media_info_is_live(const PlayerMediaInfo *info) {
+gboolean player_media_info_is_live(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), FALSE);
 
     return info->is_live;
@@ -411,8 +383,7 @@ player_media_info_is_live(const PlayerMediaInfo *info) {
  * Returns: (transfer none) (element-type PlayerStreamInfo): A #GList of
  * matching #PlayerStreamInfo.
  */
-GList *
-player_media_info_get_stream_list(const PlayerMediaInfo *info) {
+GList *player_media_info_get_stream_list(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), NULL);
 
     return info->stream_list;
@@ -425,8 +396,7 @@ player_media_info_get_stream_list(const PlayerMediaInfo *info) {
  * Returns: (transfer none) (element-type PlayerAudioInfo): A #GList of
  * matching #PlayerAudioInfo.
  */
-GList *
-player_media_info_get_audio_streams(const PlayerMediaInfo *info) {
+GList *player_media_info_get_audio_streams(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), NULL);
 
     return info->audio_stream_list;
@@ -438,8 +408,7 @@ player_media_info_get_audio_streams(const PlayerMediaInfo *info) {
  *
  * Returns: duration of the media.
  */
-GstClockTime
-player_media_info_get_duration(const PlayerMediaInfo *info) {
+GstClockTime player_media_info_get_duration(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), -1);
 
     return info->duration;
@@ -451,8 +420,7 @@ player_media_info_get_duration(const PlayerMediaInfo *info) {
  *
  * Returns: (transfer none): the tags contained in media info.
  */
-GstTagList *
-player_media_info_get_tags(const PlayerMediaInfo *info) {
+GstTagList *player_media_info_get_tags(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), NULL);
 
     return info->tags;
@@ -464,8 +432,7 @@ player_media_info_get_tags(const PlayerMediaInfo *info) {
  *
  * Returns: the media title.
  */
-const gchar *
-player_media_info_get_title(const PlayerMediaInfo *info) {
+const gchar *player_media_info_get_title(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), NULL);
 
     return info->title;
@@ -477,8 +444,7 @@ player_media_info_get_title(const PlayerMediaInfo *info) {
  *
  * Returns: the container format.
  */
-const gchar *
-player_media_info_get_container_format(const PlayerMediaInfo *info) {
+const gchar *player_media_info_get_container_format(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), NULL);
 
     return info->container;
@@ -493,8 +459,7 @@ player_media_info_get_container_format(const PlayerMediaInfo *info) {
  *
  * Returns: (transfer none): GstSample or NULL.
  */
-GstSample *
-player_media_info_get_image_sample(const PlayerMediaInfo *info) {
+GstSample *player_media_info_get_image_sample(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), NULL);
 
     return info->image_sample;
@@ -507,8 +472,7 @@ player_media_info_get_image_sample(const PlayerMediaInfo *info) {
  * Returns: number of total streams.
  * Since: 1.12
  */
-guint
-player_media_info_get_number_of_streams(const PlayerMediaInfo *info) {
+guint player_media_info_get_number_of_streams(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), 0);
 
     return g_list_length(info->stream_list);
@@ -522,11 +486,8 @@ player_media_info_get_number_of_streams(const PlayerMediaInfo *info) {
  * Returns: number of audio streams.
  * Since: 1.12
  */
-guint
-player_media_info_get_number_of_audio_streams(const PlayerMediaInfo *
-info) {
+guint player_media_info_get_number_of_audio_streams(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), 0);
-
     return g_list_length(info->audio_stream_list);
 }
 
@@ -537,10 +498,8 @@ info) {
  * Returns: number of subtitle streams.
  * Since: 1.12
  */
-guint player_media_info_get_number_of_subtitle_streams
-        (const PlayerMediaInfo *info) {
+guint player_media_info_get_number_of_subtitle_streams(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), 0);
-
     return g_list_length(info->subtitle_stream_list);
 }
 
@@ -553,8 +512,7 @@ guint player_media_info_get_number_of_subtitle_streams
  */
 #ifndef GST_REMOVE_DEPRECATED
 
-GList *
-player_get_audio_streams(const PlayerMediaInfo *info) {
+GList *player_get_audio_streams(const PlayerMediaInfo *info) {
     return player_media_info_get_audio_streams(info);
 }
 
