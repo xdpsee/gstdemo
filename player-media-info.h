@@ -126,9 +126,6 @@ GST_PLAYER_API
 guint         player_media_info_get_number_of_audio_streams (const PlayerMediaInfo *info);
 
 GST_PLAYER_API
-GList*        player_media_info_get_subtitle_streams (const PlayerMediaInfo *info);
-
-GST_PLAYER_API
 GstTagList*   player_media_info_get_tags (const PlayerMediaInfo *info);
 
 GST_PLAYER_API

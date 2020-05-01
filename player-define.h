@@ -81,13 +81,6 @@ void player_set_uri(Player *player,
                     const gchar *uri);
 
 
-gchar *player_get_subtitle_uri(Player *player);
-
-
-void player_set_subtitle_uri(Player *player,
-                             const gchar *uri);
-
-
 GstClockTime player_get_position(Player *player);
 
 
@@ -126,45 +119,10 @@ void player_set_subtitle_track_enabled(Player *player,
 gboolean player_set_audio_track(Player *player,
                                 gint stream_index);
 
-
-gboolean player_set_video_track(Player *player,
-                                gint stream_index);
-
-
-gboolean player_set_subtitle_track(Player *player,
-                                   gint stream_index);
-
-
 PlayerMediaInfo *player_get_media_info(Player *player);
 
 
 PlayerAudioInfo *player_get_current_audio_track(Player *player);
-
-
-gboolean player_set_visualization(Player *player,
-                                  const gchar *name);
-
-
-void player_set_visualization_enabled(Player *player,
-                                      gboolean enabled);
-
-
-gchar *player_get_current_visualization(Player *player);
-
-
-gint64 player_get_audio_video_offset(Player *player);
-
-
-void player_set_audio_video_offset(Player *player,
-                                   gint64 offset);
-
-
-gint64 player_get_subtitle_video_offset(Player *player);
-
-
-void player_set_subtitle_video_offset(Player *player,
-                                      gint64 offset);
-
 
 gboolean player_set_config(Player *player,
                            GstStructure *config);
@@ -193,18 +151,6 @@ void player_config_set_seek_accurate(GstStructure *config, gboolean accurate);
 
 
 gboolean player_config_get_seek_accurate(const GstStructure *config);
-
-typedef enum {
-    GST_PLAYER_THUMBNAIL_RAW_NATIVE = 0,
-    GST_PLAYER_THUMBNAIL_RAW_xRGB,
-    GST_PLAYER_THUMBNAIL_RAW_BGRx,
-    GST_PLAYER_THUMBNAIL_JPG,
-    GST_PLAYER_THUMBNAIL_PNG
-} PlayerSnapshotFormat;
-
-
-GstSample *player_get_video_snapshot(Player *player,
-                                     PlayerSnapshotFormat format, const GstStructure *config);
 
 G_END_DECLS
 
