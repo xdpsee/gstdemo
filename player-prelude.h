@@ -1,0 +1,22 @@
+#ifndef __GST_PLAYER_PRELUDE_H__
+#define __GST_PLAYER_PRELUDE_H__
+
+#include <gst/gst.h>
+
+#ifndef GST_PLAYER_API
+# ifdef BUILDING_GST_PLAYER
+#  define GST_PLAYER_API GST_API_EXPORT         /* from config.h */
+# else
+#  define GST_PLAYER_API GST_API_IMPORT
+# endif
+#endif
+
+#ifndef GST_DISABLE_DEPRECATED
+#define GST_PLAYER_DEPRECATED GST_PLAYER_API
+#define GST_PLAYER_DEPRECATED_FOR(f) GST_PLAYER_API
+#else
+#define GST_PLAYER_DEPRECATED G_DEPRECATED GST_PLAYER_API
+#define GST_PLAYER_DEPRECATED_FOR(f) G_DEPRECATED_FOR(f) GST_PLAYER_API
+#endif
+
+#endif /* __GST_PLAYER_PRELUDE_H__ */
