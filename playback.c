@@ -113,25 +113,6 @@ print_one_tag(const GstTagList *list, const gchar *tag, gpointer user_data) {
 }
 
 static void
-print_video_info(PlayerVideoInfo *info) {
-    gint fps_n, fps_d;
-    guint par_n, par_d;
-
-    if (info == NULL)
-        return;
-
-    g_print("  width : %d\n", player_video_info_get_width(info));
-    g_print("  height : %d\n", player_video_info_get_height(info));
-    g_print("  max_bitrate : %d\n",
-            player_video_info_get_max_bitrate(info));
-    g_print("  bitrate : %d\n", player_video_info_get_bitrate(info));
-    player_video_info_get_framerate(info, &fps_n, &fps_d);
-    g_print("  framerate : %.2f\n", (gdouble) fps_n / fps_d);
-    player_video_info_get_pixel_aspect_ratio(info, &par_n, &par_d);
-    g_print("  pixel-aspect-ratio  %u:%u\n", par_n, par_d);
-}
-
-static void
 print_audio_info(PlayerAudioInfo *info) {
     if (info == NULL)
         return;
@@ -143,14 +124,6 @@ print_audio_info(PlayerAudioInfo *info) {
             player_audio_info_get_max_bitrate(info));
     g_print("  bitrate : %d\n", player_audio_info_get_bitrate(info));
     g_print("  language : %s\n", player_audio_info_get_language(info));
-}
-
-static void
-print_subtitle_info(PlayerSubtitleInfo *info) {
-    if (info == NULL)
-        return;
-
-    g_print("  language : %s\n", player_subtitle_info_get_language(info));
 }
 
 static void
@@ -187,48 +160,8 @@ print_all_stream_info(PlayerMediaInfo *media_info) {
             gst_tag_list_foreach(tags, print_one_tag, NULL);
         }
 
-        if (GST_IS_PLAYER_VIDEO_INFO (stream))
-            print_video_info((PlayerVideoInfo *) stream);
-        else if (GST_IS_PLAYER_AUDIO_INFO (stream))
+        if (GST_IS_PLAYER_AUDIO_INFO (stream))
             print_audio_info((PlayerAudioInfo *) stream);
-        else
-            print_subtitle_info((PlayerSubtitleInfo *) stream);
-    }
-}
-
-static void
-print_all_video_stream(PlayerMediaInfo *media_info) {
-    GList *list, *l;
-
-    list = player_media_info_get_video_streams(media_info);
-    if (!list)
-        return;
-
-    g_print("All video streams\n");
-    for (l = list; l != NULL; l = l->next) {
-        PlayerVideoInfo *info = (PlayerVideoInfo *) l->data;
-        PlayerStreamInfo *sinfo = (PlayerStreamInfo *) info;
-        g_print(" %s_%d #\n", player_stream_info_get_stream_type(sinfo),
-                player_stream_info_get_index(sinfo));
-        print_video_info(info);
-    }
-}
-
-static void
-print_all_subtitle_stream(PlayerMediaInfo *media_info) {
-    GList *list, *l;
-
-    list = player_media_info_get_subtitle_streams(media_info);
-    if (!list)
-        return;
-
-    g_print("All subtitle streams:\n");
-    for (l = list; l != NULL; l = l->next) {
-        PlayerSubtitleInfo *info = (PlayerSubtitleInfo *) l->data;
-        PlayerStreamInfo *sinfo = (PlayerStreamInfo *) info;
-        g_print(" %s_%d #\n", player_stream_info_get_stream_type(sinfo),
-                player_stream_info_get_index(sinfo));
-        print_subtitle_info(info);
     }
 }
 
@@ -253,40 +186,21 @@ print_all_audio_stream(PlayerMediaInfo *media_info) {
 static void
 print_current_tracks(Playback *playback) {
     PlayerAudioInfo *audio = NULL;
-    PlayerVideoInfo *video = NULL;
-    PlayerSubtitleInfo *subtitle = NULL;
-
-    g_print("Current video track: \n");
-    video = player_get_current_video_track(playback->player);
-    print_video_info(video);
 
     g_print("Current audio track: \n");
     audio = player_get_current_audio_track(playback->player);
     print_audio_info(audio);
 
-    g_print("Current subtitle track: \n");
-    subtitle = player_get_current_subtitle_track(playback->player);
-    print_subtitle_info(subtitle);
-
     if (audio)
         g_object_unref(audio);
-
-    if (video)
-        g_object_unref(video);
-
-    if (subtitle)
-        g_object_unref(subtitle);
 }
 
 static void
 print_media_info(PlayerMediaInfo *media_info) {
     print_all_stream_info(media_info);
     g_print("\n");
-    print_all_video_stream(media_info);
-    g_print("\n");
     print_all_audio_stream(media_info);
     g_print("\n");
-    print_all_subtitle_stream(media_info);
 }
 
 static void

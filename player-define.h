@@ -162,12 +162,6 @@ PlayerMediaInfo *player_get_media_info(Player *player);
 PlayerAudioInfo *player_get_current_audio_track(Player *player);
 
 
-PlayerVideoInfo *player_get_current_video_track(Player *player);
-
-
-PlayerSubtitleInfo *player_get_current_subtitle_track(Player *player);
-
-
 gboolean player_set_visualization(Player *player,
                                   const gchar *name);
 

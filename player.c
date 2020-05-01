@@ -1755,15 +1755,10 @@ get_caps(Player *self, gint stream_index, GType type) {
     GstPad *pad = NULL;
     GstCaps *caps = NULL;
 
-    if (type == GST_TYPE_PLAYER_VIDEO_INFO)
-        g_signal_emit_by_name(G_OBJECT (self->playbin),
-                              "get-video-pad", stream_index, &pad);
-    else if (type == GST_TYPE_PLAYER_AUDIO_INFO)
+    if (type == GST_TYPE_PLAYER_AUDIO_INFO) {
         g_signal_emit_by_name(G_OBJECT (self->playbin),
                               "get-audio-pad", stream_index, &pad);
-    else
-        g_signal_emit_by_name(G_OBJECT (self->playbin),
-                              "get-text-pad", stream_index, &pad);
+    }
 
     if (pad) {
         caps = gst_pad_get_current_caps(pad);
@@ -1976,9 +1971,7 @@ static gchar *stream_info_get_codec(PlayerStreamInfo *s) {
     GstTagList *tags;
     gchar *codec = NULL;
 
-    if (GST_IS_PLAYER_VIDEO_INFO (s))
-        type = GST_TAG_VIDEO_CODEC;
-    else if (GST_IS_PLAYER_AUDIO_INFO (s))
+    if (GST_IS_PLAYER_AUDIO_INFO (s))
         type = GST_TAG_AUDIO_CODEC;
     else
         type = GST_TAG_SUBTITLE_CODEC;
@@ -2009,15 +2002,9 @@ player_stream_info_update_tags_and_caps(Player *self,
 
     stream_index = player_stream_info_get_index(s);
 
-    if (GST_IS_PLAYER_VIDEO_INFO (s))
-        g_signal_emit_by_name(self->playbin, "get-video-tags",
-                              stream_index, &tags);
-    else if (GST_IS_PLAYER_AUDIO_INFO (s))
+    if (GST_IS_PLAYER_AUDIO_INFO (s))
         g_signal_emit_by_name(self->playbin, "get-audio-tags",
                               stream_index, &tags);
-    else
-        g_signal_emit_by_name(self->playbin, "get-text-tags", stream_index, &tags);
-
     if (s->tags)
         gst_tag_list_unref(s->tags);
     s->tags = tags;
@@ -2062,15 +2049,10 @@ player_streams_info_create(Player *self,
             media_info->stream_list = g_list_append(media_info->stream_list, s);
 
             /* based on type, add the object in its corresponding stream_ list */
-            if (GST_IS_PLAYER_AUDIO_INFO (s))
+            if (GST_IS_PLAYER_AUDIO_INFO (s)) {
                 media_info->audio_stream_list = g_list_append
                         (media_info->audio_stream_list, s);
-            else if (GST_IS_PLAYER_VIDEO_INFO (s))
-                media_info->video_stream_list = g_list_append
-                        (media_info->video_stream_list, s);
-            else
-                media_info->subtitle_stream_list = g_list_append
-                        (media_info->subtitle_stream_list, s);
+            }
 
             GST_DEBUG_OBJECT (self, "create %s stream stream_index: %d",
                               player_stream_info_get_stream_type(s), i);
@@ -2124,12 +2106,6 @@ player_streams_info_create_from_collection(Player *self,
         if (stream_type & GST_STREAM_TYPE_AUDIO) {
             s = player_stream_info_new(n_audio, GST_TYPE_PLAYER_AUDIO_INFO);
             n_audio++;
-        } else if (stream_type & GST_STREAM_TYPE_VIDEO) {
-            s = player_stream_info_new(n_video, GST_TYPE_PLAYER_VIDEO_INFO);
-            n_video++;
-        } else if (stream_type & GST_STREAM_TYPE_TEXT) {
-            s = player_stream_info_new(n_text, GST_TYPE_PLAYER_SUBTITLE_INFO);
-            n_text++;
         } else {
             GST_DEBUG_OBJECT (self, "Unknown type stream %d", i);
             continue;
@@ -2141,15 +2117,10 @@ player_streams_info_create_from_collection(Player *self,
         media_info->stream_list = g_list_append(media_info->stream_list, s);
 
         /* based on type, add the object in its corresponding stream_ list */
-        if (GST_IS_PLAYER_AUDIO_INFO (s))
+        if (GST_IS_PLAYER_AUDIO_INFO (s)) {
             media_info->audio_stream_list = g_list_append
                     (media_info->audio_stream_list, s);
-        else if (GST_IS_PLAYER_VIDEO_INFO (s))
-            media_info->video_stream_list = g_list_append
-                    (media_info->video_stream_list, s);
-        else
-            media_info->subtitle_stream_list = g_list_append
-                    (media_info->subtitle_stream_list, s);
+        }
 
         GST_DEBUG_OBJECT (self, "create %s stream stream_index: %d",
                           player_stream_info_get_stream_type(s), s->stream_index);
@@ -2159,32 +2130,12 @@ player_streams_info_create_from_collection(Player *self,
 }
 
 static void
-video_changed_cb(G_GNUC_UNUSED GObject *object, gpointer user_data) {
-    Player *self = GST_PLAYER (user_data);
-
-    g_mutex_lock(&self->lock);
-    player_streams_info_create(self, self->media_info,
-                               "n-video", GST_TYPE_PLAYER_VIDEO_INFO);
-    g_mutex_unlock(&self->lock);
-}
-
-static void
 audio_changed_cb(G_GNUC_UNUSED GObject *object, gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
 
     g_mutex_lock(&self->lock);
     player_streams_info_create(self, self->media_info,
                                "n-audio", GST_TYPE_PLAYER_AUDIO_INFO);
-    g_mutex_unlock(&self->lock);
-}
-
-static void
-subtitle_changed_cb(G_GNUC_UNUSED GObject *object, gpointer user_data) {
-    Player *self = GST_PLAYER (user_data);
-
-    g_mutex_lock(&self->lock);
-    player_streams_info_create(self, self->media_info,
-                               "n-text", GST_TYPE_PLAYER_SUBTITLE_INFO);
     g_mutex_unlock(&self->lock);
 }
 
@@ -2224,20 +2175,7 @@ get_from_tags(Player *self, PlayerMediaInfo *media_info,
             return ret;
     }
 
-    /* if global tag does not exit then try video and audio streams */
-    GST_DEBUG_OBJECT (self, "trying video tags");
-    for (l = player_media_info_get_video_streams(media_info); l != NULL;
-         l = l->next) {
-        GstTagList *tags;
-
-        tags = player_stream_info_get_tags((PlayerStreamInfo *) l->data);
-        if (tags)
-            ret = func(tags);
-
-        if (ret)
-            return ret;
-    }
-
+    /* if global tag does not exit then try audio streams */
     GST_DEBUG_OBJECT (self, "trying audio tags");
     for (l = player_media_info_get_audio_streams(media_info); l != NULL;
          l = l->next) {
@@ -2287,13 +2225,9 @@ player_media_info_create(Player *self) {
         player_streams_info_create_from_collection(self, media_info,
                                                    self->collection);
     } else {
-        /* create audio/video/sub streams */
-        player_streams_info_create(self, media_info, "n-video",
-                                   GST_TYPE_PLAYER_VIDEO_INFO);
+        /* create audio streams */
         player_streams_info_create(self, media_info, "n-audio",
                                    GST_TYPE_PLAYER_AUDIO_INFO);
-        player_streams_info_create(self, media_info, "n-text",
-                                   GST_TYPE_PLAYER_SUBTITLE_INFO);
     }
 
     media_info->title = get_from_tags(self, media_info, get_title);
@@ -2328,24 +2262,10 @@ tags_changed_cb(Player *self, gint stream_index, GType type) {
 }
 
 static void
-video_tags_changed_cb(G_GNUC_UNUSED GstElement *playbin, gint stream_index,
-                      gpointer user_data) {
-    tags_changed_cb(GST_PLAYER (user_data), stream_index,
-                    GST_TYPE_PLAYER_VIDEO_INFO);
-}
-
-static void
 audio_tags_changed_cb(G_GNUC_UNUSED GstElement *playbin, gint stream_index,
                       gpointer user_data) {
     tags_changed_cb(GST_PLAYER (user_data), stream_index,
                     GST_TYPE_PLAYER_AUDIO_INFO);
-}
-
-static void
-subtitle_tags_changed_cb(G_GNUC_UNUSED GstElement *playbin, gint stream_index,
-                         gpointer user_data) {
-    tags_changed_cb(GST_PLAYER (user_data), stream_index,
-                    GST_TYPE_PLAYER_SUBTITLE_INFO);
 }
 
 static void
@@ -2487,19 +2407,10 @@ player_main(gpointer data) {
         g_signal_connect (G_OBJECT(bus), "message::streams-selected",
                           G_CALLBACK(streams_selected_cb), self);
     } else {
-        g_signal_connect (self->playbin, "video-changed",
-                          G_CALLBACK(video_changed_cb), self);
         g_signal_connect (self->playbin, "audio-changed",
                           G_CALLBACK(audio_changed_cb), self);
-        g_signal_connect (self->playbin, "text-changed",
-                          G_CALLBACK(subtitle_changed_cb), self);
-
-        g_signal_connect (self->playbin, "video-tags-changed",
-                          G_CALLBACK(video_tags_changed_cb), self);
         g_signal_connect (self->playbin, "audio-tags-changed",
                           G_CALLBACK(audio_tags_changed_cb), self);
-        g_signal_connect (self->playbin, "text-tags-changed",
-                          G_CALLBACK(subtitle_tags_changed_cb), self);
     }
 
     g_signal_connect (self->playbin, "notify::volume",
@@ -3247,68 +3158,6 @@ player_get_current_audio_track(Player *self) {
     return info;
 }
 
-/**
- * player_get_current_video_track:
- * @player: #Player instance
- *
- * A Function to get current video #PlayerVideoInfo instance.
- *
- * Returns: (transfer full): current video track.
- *
- * The caller should free it with g_object_unref()
- */
-PlayerVideoInfo *
-player_get_current_video_track(Player *self) {
-    PlayerVideoInfo *info;
-
-    g_return_val_if_fail (GST_IS_PLAYER(self), NULL);
-
-    if (!is_track_enabled(self, GST_PLAY_FLAG_VIDEO))
-        return NULL;
-
-    if (self->use_playbin3) {
-        info = (PlayerVideoInfo *)
-                player_stream_info_get_current_from_stream_id(self,
-                                                              self->video_sid, GST_TYPE_PLAYER_VIDEO_INFO);
-    } else {
-        info = (PlayerVideoInfo *) player_stream_info_get_current(self,
-                                                                  "current-video", GST_TYPE_PLAYER_VIDEO_INFO);
-    }
-
-    return info;
-}
-
-/**
- * player_get_current_subtitle_track:
- * @player: #Player instance
- *
- * A Function to get current subtitle #PlayerSubtitleInfo instance.
- *
- * Returns: (transfer none): current subtitle track.
- *
- * The caller should free it with g_object_unref()
- */
-PlayerSubtitleInfo *
-player_get_current_subtitle_track(Player *self) {
-    PlayerSubtitleInfo *info;
-
-    g_return_val_if_fail (GST_IS_PLAYER(self), NULL);
-
-    if (!is_track_enabled(self, GST_PLAY_FLAG_SUBTITLE))
-        return NULL;
-
-    if (self->use_playbin3) {
-        info = (PlayerSubtitleInfo *)
-                player_stream_info_get_current_from_stream_id(self,
-                                                              self->subtitle_sid, GST_TYPE_PLAYER_SUBTITLE_INFO);
-    } else {
-        info = (PlayerSubtitleInfo *) player_stream_info_get_current(self,
-                                                                     "current-text", GST_TYPE_PLAYER_SUBTITLE_INFO);
-    }
-
-    return info;
-}
-
 /* Must be called with lock */
 static gboolean
 player_select_streams(Player *self) {
@@ -3369,86 +3218,6 @@ player_set_audio_track(Player *self, gint stream_index) {
     } else {
         g_object_set(G_OBJECT (self->playbin), "current-audio", stream_index,
                      NULL);
-    }
-
-    GST_DEBUG_OBJECT (self, "set stream index '%d'", stream_index);
-    return ret;
-}
-
-/**
- * player_set_video_track:
- * @player: #Player instance
- * @stream_index: stream index
- *
- * Returns: %TRUE or %FALSE
- *
- * Sets the video track @stream_index.
- */
-gboolean
-player_set_video_track(Player *self, gint stream_index) {
-    PlayerStreamInfo *info;
-    gboolean ret = TRUE;
-
-    g_return_val_if_fail (GST_IS_PLAYER(self), 0);
-
-    /* check if stream_index exist in our internal media_info list */
-    g_mutex_lock(&self->lock);
-    info = player_stream_info_find(self->media_info,
-                                   GST_TYPE_PLAYER_VIDEO_INFO, stream_index);
-    g_mutex_unlock(&self->lock);
-    if (!info) {
-        GST_ERROR_OBJECT (self, "invalid video stream index %d", stream_index);
-        return FALSE;
-    }
-
-    if (self->use_playbin3) {
-        g_mutex_lock(&self->lock);
-        g_free(self->video_sid);
-        self->video_sid = g_strdup(info->stream_id);
-        ret = player_select_streams(self);
-        g_mutex_unlock(&self->lock);
-    } else {
-        g_object_set(G_OBJECT (self->playbin), "current-video", stream_index,
-                     NULL);
-    }
-
-    GST_DEBUG_OBJECT (self, "set stream index '%d'", stream_index);
-    return ret;
-}
-
-/**
- * player_set_subtitle_track:
- * @player: #Player instance
- * @stream_index: stream index
- *
- * Returns: %TRUE or %FALSE
- *
- * Sets the subtitle stack @stream_index.
- */
-gboolean
-player_set_subtitle_track(Player *self, gint stream_index) {
-    PlayerStreamInfo *info;
-    gboolean ret = TRUE;
-
-    g_return_val_if_fail (GST_IS_PLAYER(self), 0);
-
-    g_mutex_lock(&self->lock);
-    info = player_stream_info_find(self->media_info,
-                                   GST_TYPE_PLAYER_SUBTITLE_INFO, stream_index);
-    g_mutex_unlock(&self->lock);
-    if (!info) {
-        GST_ERROR_OBJECT (self, "invalid subtitle stream index %d", stream_index);
-        return FALSE;
-    }
-
-    if (self->use_playbin3) {
-        g_mutex_lock(&self->lock);
-        g_free(self->subtitle_sid);
-        self->subtitle_sid = g_strdup(info->stream_id);
-        ret = player_select_streams(self);
-        g_mutex_unlock(&self->lock);
-    } else {
-        g_object_set(G_OBJECT (self->playbin), "current-text", stream_index, NULL);
     }
 
     GST_DEBUG_OBJECT (self, "set stream index '%d'", stream_index);
