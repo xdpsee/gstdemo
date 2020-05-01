@@ -54,24 +54,16 @@ GQuark _config_quark_table[CONFIG_QUARK_MAX];
 
 enum {
     PROP_0,
-    PROP_VIDEO_RENDERER,
     PROP_SIGNAL_DISPATCHER,
     PROP_URI,
-    PROP_SUBURI,
     PROP_POSITION,
     PROP_DURATION,
     PROP_MEDIA_INFO,
     PROP_CURRENT_AUDIO_TRACK,
-    PROP_CURRENT_VIDEO_TRACK,
-    PROP_CURRENT_SUBTITLE_TRACK,
     PROP_VOLUME,
     PROP_MUTE,
     PROP_RATE,
     PROP_PIPELINE,
-    PROP_VIDEO_MULTIVIEW_MODE,
-    PROP_VIDEO_MULTIVIEW_FLAGS,
-    PROP_AUDIO_VIDEO_OFFSET,
-    PROP_SUBTITLE_VIDEO_OFFSET,
     PROP_LAST
 };
 
@@ -301,11 +293,6 @@ player_class_init(PlayerClass *klass) {
 
     param_specs[PROP_URI] = g_param_spec_string("uri", "URI", "Current URI",
                                                 DEFAULT_URI, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
-
-    param_specs[PROP_SUBURI] = g_param_spec_string("suburi", "Subtitle URI",
-                                                   "Current Subtitle URI", NULL,
-                                                   G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
-
     param_specs[PROP_POSITION] =
             g_param_spec_uint64("position", "Position", "Current Position",
                                 0, G_MAXUINT64, DEFAULT_POSITION,
@@ -319,16 +306,6 @@ player_class_init(PlayerClass *klass) {
     param_specs[PROP_CURRENT_AUDIO_TRACK] =
             g_param_spec_object("current-audio-track", "Current Audio Track",
                                 "Current audio track information", GST_TYPE_PLAYER_AUDIO_INFO,
-                                G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
-
-    param_specs[PROP_CURRENT_VIDEO_TRACK] =
-            g_param_spec_object("current-video-track", "Current Video Track",
-                                "Current video track information", GST_TYPE_PLAYER_VIDEO_INFO,
-                                G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
-
-    param_specs[PROP_CURRENT_SUBTITLE_TRACK] =
-            g_param_spec_object("current-subtitle-track", "Current Subtitle Track",
-                                "Current audio subtitle information", GST_TYPE_PLAYER_SUBTITLE_INFO,
                                 G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
     param_specs[PROP_DURATION] =
@@ -352,16 +329,6 @@ player_class_init(PlayerClass *klass) {
     param_specs[PROP_RATE] =
             g_param_spec_double("rate", "rate", "Playback rate",
                                 -64.0, 64.0, DEFAULT_RATE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
-
-    param_specs[PROP_AUDIO_VIDEO_OFFSET] =
-            g_param_spec_int64("audio-video-offset", "Audio Video Offset",
-                               "The synchronisation offset between audio and video in nanoseconds",
-                               G_MININT64, G_MAXINT64, 0, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
-
-    param_specs[PROP_SUBTITLE_VIDEO_OFFSET] =
-            g_param_spec_int64("subtitle-video-offset", "Text Video Offset",
-                               "The synchronisation offset between text and video in nanoseconds",
-                               G_MININT64, G_MAXINT64, 0, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
 
     g_object_class_install_properties(gobject_class, PROP_LAST, param_specs);
 
@@ -431,6 +398,8 @@ player_class_init(PlayerClass *klass) {
                          NULL, NULL, G_TYPE_NONE, 1, GST_TYPE_CLOCK_TIME);
 
     config_quark_initialize();
+
+
 }
 
 static void
@@ -626,18 +595,6 @@ player_set_property(GObject *object, guint prop_id,
                                        player_set_uri_internal, self, NULL);
             break;
         }
-        case PROP_SUBURI: {
-            g_mutex_lock(&self->lock);
-            g_free(self->suburi);
-
-            self->suburi = g_value_dup_string(value);
-            GST_DEBUG_OBJECT (self, "Set suburi=%s", self->suburi);
-            g_mutex_unlock(&self->lock);
-
-            g_main_context_invoke_full(self->context, G_PRIORITY_DEFAULT,
-                                       player_set_suburi_internal, self, NULL);
-            break;
-        }
         case PROP_VOLUME:
             GST_DEBUG_OBJECT (self, "Set volume=%lf", g_value_get_double(value));
             g_object_set_property(G_OBJECT (self->playbin), "volume", value);
@@ -652,24 +609,6 @@ player_set_property(GObject *object, guint prop_id,
         case PROP_MUTE:
             GST_DEBUG_OBJECT (self, "Set mute=%d", g_value_get_boolean(value));
             g_object_set_property(G_OBJECT (self->playbin), "mute", value);
-            break;
-        case PROP_VIDEO_MULTIVIEW_MODE:
-            GST_DEBUG_OBJECT (self, "Set multiview mode=%u",
-                              g_value_get_enum(value));
-            g_object_set_property(G_OBJECT (self->playbin), "video-multiview-mode",
-                                  value);
-            break;
-        case PROP_VIDEO_MULTIVIEW_FLAGS:
-            GST_DEBUG_OBJECT (self, "Set multiview flags=%x",
-                              g_value_get_flags(value));
-            g_object_set_property(G_OBJECT (self->playbin), "video-multiview-flags",
-                                  value);
-            break;
-        case PROP_AUDIO_VIDEO_OFFSET:
-            g_object_set_property(G_OBJECT (self->playbin), "av-offset", value);
-            break;
-        case PROP_SUBTITLE_VIDEO_OFFSET:
-            g_object_set_property(G_OBJECT (self->playbin), "text-offset", value);
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -687,13 +626,6 @@ player_get_property(GObject *object, guint prop_id,
             g_mutex_lock(&self->lock);
             g_value_set_string(value, self->uri);
             g_mutex_unlock(&self->lock);
-            break;
-        case PROP_SUBURI:
-            g_mutex_lock(&self->lock);
-            g_value_set_string(value, self->suburi);
-            g_mutex_unlock(&self->lock);
-            GST_DEBUG_OBJECT (self, "Returning suburi=%s",
-                              g_value_get_string(value));
             break;
         case PROP_POSITION: {
             gint64 position = GST_CLOCK_TIME_NONE;
@@ -721,18 +653,6 @@ player_get_property(GObject *object, guint prop_id,
             g_value_take_object(value, audio_info);
             break;
         }
-        case PROP_CURRENT_VIDEO_TRACK: {
-            PlayerVideoInfo *video_info =
-                    player_get_current_video_track(self);
-            g_value_take_object(value, video_info);
-            break;
-        }
-        case PROP_CURRENT_SUBTITLE_TRACK: {
-            PlayerSubtitleInfo *subtitle_info =
-                    player_get_current_subtitle_track(self);
-            g_value_take_object(value, subtitle_info);
-            break;
-        }
         case PROP_VOLUME:
             g_object_get_property(G_OBJECT (self->playbin), "volume", value);
             GST_TRACE_OBJECT (self, "Returning volume=%lf",
@@ -749,26 +669,6 @@ player_get_property(GObject *object, guint prop_id,
             break;
         case PROP_PIPELINE:
             g_value_set_object(value, self->playbin);
-            break;
-        case PROP_VIDEO_MULTIVIEW_MODE: {
-            g_object_get_property(G_OBJECT (self->playbin), "video-multiview-mode",
-                                  value);
-            GST_TRACE_OBJECT (self, "Return multiview mode=%d",
-                              g_value_get_enum(value));
-            break;
-        }
-        case PROP_VIDEO_MULTIVIEW_FLAGS: {
-            g_object_get_property(G_OBJECT (self->playbin), "video-multiview-flags",
-                                  value);
-            GST_TRACE_OBJECT (self, "Return multiview flags=%x",
-                              g_value_get_flags(value));
-            break;
-        }
-        case PROP_AUDIO_VIDEO_OFFSET:
-            g_object_get_property(G_OBJECT (self->playbin), "av-offset", value);
-            break;
-        case PROP_SUBTITLE_VIDEO_OFFSET:
-            g_object_get_property(G_OBJECT (self->playbin), "text-offset", value);
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -2126,8 +2026,8 @@ player_stream_info_update_tags_and_caps(Player *self,
         gst_caps_unref(s->caps);
     s->caps = get_caps(self, stream_index, G_OBJECT_TYPE (s));
 
-    g_free(s->codec);
-    s->codec = stream_info_get_codec(s);
+    //g_free(s->codec);
+    //s->codec = stream_info_get_codec(s);
 
     GST_DEBUG_OBJECT (self, "%s index: %d tags: %p caps: %p",
                       player_stream_info_get_stream_type(s), stream_index,
@@ -2191,8 +2091,8 @@ player_stream_info_update_from_stream(Player *self,
         gst_caps_unref(s->caps);
     s->caps = gst_stream_get_caps(stream);
 
-    g_free(s->codec);
-    s->codec = stream_info_get_codec(s);
+    //g_free(s->codec);
+    //s->codec = stream_info_get_codec(s);
 
     GST_DEBUG_OBJECT (self, "%s index: %d tags: %p caps: %p",
                       player_stream_info_get_stream_type(s), s->stream_index,
@@ -2656,7 +2556,7 @@ static gpointer
 player_init_once(G_GNUC_UNUSED gpointer user_data) {
     gst_init(NULL, NULL);
 
-    GST_DEBUG_CATEGORY_INIT (player_debug, "gst-player", 0, "Player");
+    GST_DEBUG_CATEGORY_INIT (player_debug, "player", 0, "Player");
     player_error_quark();
 
     return NULL;
@@ -2683,8 +2583,7 @@ Player *player_new(PlayerSignalDispatcher *signal_dispatcher) {
 
     g_once (&once, player_init_once, NULL);
 
-    self =
-            g_object_new(GST_TYPE_PLAYER, "signal-dispatcher", signal_dispatcher, NULL);
+    self = g_object_new(GST_TYPE_PLAYER, "signal-dispatcher", signal_dispatcher, NULL);
     gst_object_ref_sink(self);
 
     if (signal_dispatcher)

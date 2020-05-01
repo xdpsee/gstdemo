@@ -20,7 +20,7 @@ player_stream_info_finalize (GObject * object)
 {
   PlayerStreamInfo *sinfo = GST_PLAYER_STREAM_INFO (object);
 
-  g_free (sinfo->codec);
+  //g_free (sinfo->codec);
   g_free (sinfo->stream_id);
 
   if (sinfo->caps)
@@ -105,7 +105,7 @@ player_stream_info_get_codec (const PlayerStreamInfo * info)
 {
   g_return_val_if_fail (GST_IS_PLAYER_STREAM_INFO (info), NULL);
 
-  return info->codec;
+  return NULL;//info->codec;
 }
 
 /**
@@ -515,8 +515,8 @@ player_stream_info_copy (PlayerStreamInfo * ref)
     info->tags = gst_tag_list_ref (ref->tags);
   if (ref->caps)
     info->caps = gst_caps_copy (ref->caps);
-  if (ref->codec)
-    info->codec = g_strdup (ref->codec);
+//  if (ref->codec)
+//    info->codec = g_strdup (ref->codec);
   if (ref->stream_id)
     info->stream_id = g_strdup (ref->stream_id);
 

@@ -7,7 +7,7 @@ struct _PlayerStreamInfo
 {
   GObject parent;
 
-  gchar *codec;
+  //gchar *codec;
 
   GstCaps *caps;
   gint stream_index;
