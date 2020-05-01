@@ -2475,16 +2475,11 @@ player_init_once(G_GNUC_UNUSED gpointer user_data) {
 
 /**
  * player_new:
- * @video_renderer: (transfer full) (allow-none): GstPlayerVideoRenderer to use
  * @signal_dispatcher: (transfer full) (allow-none): PlayerSignalDispatcher to use
  *
  * Creates a new #Player instance that uses @signal_dispatcher to dispatch
  * signals to some event loop system, or emits signals directly if NULL is
  * passed. See player_g_main_context_signal_dispatcher_new().
- *
- * Video is going to be rendered by @video_renderer, or if %NULL is provided
- * no special video set up will be done and some default handling will be
- * performed.
  *
  * Returns: (transfer full): a new #Player instance
  */
@@ -2633,8 +2628,7 @@ player_pause_internal(gpointer user_data) {
  *
  * Pauses the current stream.
  */
-void
-player_pause(Player *player) {
+void player_pause(Player *player) {
     g_return_if_fail (GST_IS_PLAYER(player));
 
     g_mutex_lock(&player->lock);
@@ -2645,8 +2639,7 @@ player_pause(Player *player) {
                                player_pause_internal, player, NULL);
 }
 
-static void
-player_stop_internal(Player *self, gboolean transient) {
+static void player_stop_internal(Player *self, gboolean transient) {
     /* directly return if we're already stopped */
     if (self->current_state <= GST_STATE_READY &&
         self->target_state <= GST_STATE_READY)
@@ -2702,8 +2695,7 @@ player_stop_internal(Player *self, gboolean transient) {
     g_mutex_unlock(&self->lock);
 }
 
-static gboolean
-player_stop_internal_dispatch(gpointer user_data) {
+static gboolean player_stop_internal_dispatch(gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
 
     player_stop_internal(self, FALSE);
@@ -2719,8 +2711,7 @@ player_stop_internal_dispatch(gpointer user_data) {
  * Stops playing the current stream and resets to the first position
  * in the stream.
  */
-void
-player_stop(Player *player) {
+void player_stop(Player *player) {
     g_return_if_fail (GST_IS_PLAYER(player));
 
     g_mutex_lock(&player->lock);
@@ -2732,8 +2723,7 @@ player_stop(Player *player) {
 }
 
 /* Must be called with lock from main context, releases lock! */
-static void
-player_seek_internal_locked(Player *self) {
+static void player_seek_internal_locked(Player *self) {
     gboolean ret;
     GstClockTime position;
     gdouble rate;
@@ -2803,8 +2793,7 @@ player_seek_internal_locked(Player *self) {
     g_mutex_lock(&self->lock);
 }
 
-static gboolean
-player_seek_internal(gpointer user_data) {
+static gboolean player_seek_internal(gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
 
     g_mutex_lock(&self->lock);
@@ -2821,8 +2810,7 @@ player_seek_internal(gpointer user_data) {
  *
  * Playback at specified rate
  */
-void
-player_set_rate(Player *player, gdouble rate) {
+void player_set_rate(Player *player, gdouble rate) {
     g_return_if_fail (GST_IS_PLAYER(player));
     g_return_if_fail (rate != 0.0);
 
@@ -2835,8 +2823,7 @@ player_set_rate(Player *player, gdouble rate) {
  *
  * Returns: current playback rate
  */
-gdouble
-player_get_rate(Player *player) {
+gdouble player_get_rate(Player *player) {
     gdouble val;
 
     g_return_val_if_fail (GST_IS_PLAYER(player), DEFAULT_RATE);
@@ -2854,8 +2841,7 @@ player_get_rate(Player *player) {
  * Seeks the currently-playing stream to the absolute @position time
  * in nanoseconds.
  */
-void
-player_seek(Player *player, GstClockTime position) {
+void player_seek(Player *player, GstClockTime position) {
     g_return_if_fail (GST_IS_PLAYER(player));
     g_return_if_fail (GST_CLOCK_TIME_IS_VALID(position));
 
@@ -2902,8 +2888,7 @@ player_seek(Player *player, GstClockTime position) {
     g_mutex_unlock(&player->lock);
 }
 
-static void
-remove_seek_source(Player *self) {
+static void remove_seek_source(Player *self) {
     if (!self->seek_source)
         return;
 
@@ -2921,8 +2906,7 @@ remove_seek_source(Player *self) {
  * Returns: (transfer full): a string containing the URI of the
  * currently-playing stream. g_free() after usage.
  */
-gchar *
-player_get_uri(Player *player) {
+gchar * player_get_uri(Player *player) {
     gchar *val;
 
     g_return_val_if_fail (GST_IS_PLAYER(player), DEFAULT_URI);
@@ -2939,47 +2923,10 @@ player_get_uri(Player *player) {
  *
  * Sets the next URI to play.
  */
-void
-player_set_uri(Player *player, const gchar *uri) {
+void player_set_uri(Player *player, const gchar *uri) {
     g_return_if_fail (GST_IS_PLAYER(player));
 
     g_object_set(player, "uri", uri, NULL);
-}
-
-/**
- * player_set_subtitle_uri:
- * @player: #Player instance
- * @uri: subtitle URI
- *
- * Sets the external subtitle URI. This should be combined with a call to
- * player_set_subtitle_track_enabled(@player, TRUE) so the subtitles are actually
- * rendered.
- */
-void
-player_set_subtitle_uri(Player *player, const gchar *uri) {
-    g_return_if_fail (GST_IS_PLAYER(player));
-
-    g_object_set(player, "suburi", uri, NULL);
-}
-
-/**
- * player_get_subtitle_uri:
- * @player: #Player instance
- *
- * current subtitle URI
- *
- * Returns: (transfer full): URI of the current external subtitle.
- *   g_free() after usage.
- */
-gchar *
-player_get_subtitle_uri(Player *player) {
-    gchar *val = NULL;
-
-    g_return_val_if_fail (GST_IS_PLAYER(player), NULL);
-
-    g_object_get(player, "suburi", &val, NULL);
-
-    return val;
 }
 
 /**
@@ -2989,8 +2936,7 @@ player_get_subtitle_uri(Player *player) {
  * Returns: the absolute position time, in nanoseconds, of the
  * currently-playing stream.
  */
-GstClockTime
-player_get_position(Player *player) {
+GstClockTime player_get_position(Player *player) {
     GstClockTime val;
 
     g_return_val_if_fail (GST_IS_PLAYER(player), DEFAULT_POSITION);
@@ -3009,8 +2955,7 @@ player_get_position(Player *player) {
  * Returns: the duration of the currently-playing media stream, in
  * nanoseconds.
  */
-GstClockTime
-player_get_duration(Player *player) {
+GstClockTime player_get_duration(Player *player) {
     GstClockTime val;
 
     g_return_val_if_fail (GST_IS_PLAYER(player), DEFAULT_DURATION);
@@ -3028,8 +2973,7 @@ player_get_duration(Player *player) {
  *
  * Returns: the volume as percentage between 0 and 1.
  */
-gdouble
-player_get_volume(Player *self) {
+gdouble player_get_volume(Player *self) {
     gdouble val;
 
     g_return_val_if_fail (GST_IS_PLAYER(self), DEFAULT_VOLUME);
@@ -3046,8 +2990,7 @@ player_get_volume(Player *self) {
  *
  * Sets the volume level of the stream as a percentage between 0 and 1.
  */
-void
-player_set_volume(Player *self, gdouble val) {
+void player_set_volume(Player *self, gdouble val) {
     g_return_if_fail (GST_IS_PLAYER(self));
 
     g_object_set(self, "volume", val, NULL);
@@ -3059,8 +3002,7 @@ player_set_volume(Player *self, gdouble val) {
  *
  * Returns: %TRUE if the currently-playing stream is muted.
  */
-gboolean
-player_get_mute(Player *self) {
+gboolean player_get_mute(Player *self) {
     gboolean val;
 
     g_return_val_if_fail (GST_IS_PLAYER(self), DEFAULT_MUTE);
@@ -3077,8 +3019,7 @@ player_get_mute(Player *self) {
  *
  * %TRUE if the currently-playing stream should be muted.
  */
-void
-player_set_mute(Player *self, gboolean val) {
+void player_set_mute(Player *self, gboolean val) {
     g_return_if_fail (GST_IS_PLAYER(self));
 
     g_object_set(self, "mute", val, NULL);
@@ -3090,8 +3031,7 @@ player_set_mute(Player *self, gboolean val) {
  *
  * Returns: (transfer full): The internal playbin instance
  */
-GstElement *
-player_get_pipeline(Player *self) {
+GstElement * player_get_pipeline(Player *self) {
     GstElement *val;
 
     g_return_val_if_fail (GST_IS_PLAYER(self), NULL);
@@ -3111,8 +3051,7 @@ player_get_pipeline(Player *self) {
  *
  * The caller should free it with g_object_unref()
  */
-PlayerMediaInfo *
-player_get_media_info(Player *self) {
+PlayerMediaInfo * player_get_media_info(Player *self) {
     PlayerMediaInfo *info;
 
     g_return_val_if_fail (GST_IS_PLAYER(self), NULL);
@@ -3137,8 +3076,7 @@ player_get_media_info(Player *self) {
  *
  * The caller should free it with g_object_unref()
  */
-PlayerAudioInfo *
-player_get_current_audio_track(Player *self) {
+PlayerAudioInfo * player_get_current_audio_track(Player *self) {
     PlayerAudioInfo *info;
 
     g_return_val_if_fail (GST_IS_PLAYER(self), NULL);
@@ -3159,8 +3097,7 @@ player_get_current_audio_track(Player *self) {
 }
 
 /* Must be called with lock */
-static gboolean
-player_select_streams(Player *self) {
+static gboolean player_select_streams(Player *self) {
     GList *stream_list = NULL;
     gboolean ret = FALSE;
 
@@ -3193,8 +3130,7 @@ player_select_streams(Player *self) {
  *
  * Sets the audio track @stream_idex.
  */
-gboolean
-player_set_audio_track(Player *self, gint stream_index) {
+gboolean player_set_audio_track(Player *self, gint stream_index) {
     PlayerStreamInfo *info;
     gboolean ret = TRUE;
 
@@ -3281,228 +3217,8 @@ player_set_subtitle_track_enabled(Player *self, gboolean enabled) {
     GST_DEBUG_OBJECT (self, "track is '%s'", enabled ? "Enabled" : "Disabled");
 }
 
-/**
- * player_set_visualization:
- * @player: #Player instance
- * @name: visualization element obtained from
- * #player_visualizations_get()
- *
- * Returns: %TRUE if the visualizations was set correctly. Otherwise,
- * %FALSE.
- */
-gboolean
-player_set_visualization(Player *self, const gchar *name) {
-    g_return_val_if_fail (GST_IS_PLAYER(self), FALSE);
-
-    g_mutex_lock(&self->lock);
-    if (self->current_vis_element) {
-        gst_object_unref(self->current_vis_element);
-        self->current_vis_element = NULL;
-    }
-
-    if (name) {
-        self->current_vis_element = gst_element_factory_make(name, NULL);
-        if (!self->current_vis_element)
-            goto error_no_element;
-        gst_object_ref_sink(self->current_vis_element);
-    }
-    g_object_set(self->playbin, "vis-plugin", self->current_vis_element, NULL);
-
-    g_mutex_unlock(&self->lock);
-    GST_DEBUG_OBJECT (self, "set vis-plugin to '%s'", name);
-
-    return TRUE;
-
-    error_no_element:
-    g_mutex_unlock(&self->lock);
-    GST_WARNING_OBJECT (self, "could not find visualization '%s'", name);
-    return FALSE;
-}
-
-/**
- * player_get_current_visualization:
- * @player: #Player instance
- *
- * Returns: (transfer full): Name of the currently enabled visualization.
- *   g_free() after usage.
- */
-gchar *
-player_get_current_visualization(Player *self) {
-    gchar *name = NULL;
-    GstElement *vis_plugin = NULL;
-
-    g_return_val_if_fail (GST_IS_PLAYER(self), NULL);
-
-    if (!is_track_enabled(self, GST_PLAY_FLAG_VIS))
-        return NULL;
-
-    g_object_get(self->playbin, "vis-plugin", &vis_plugin, NULL);
-
-    if (vis_plugin) {
-        GstElementFactory *factory = gst_element_get_factory(vis_plugin);
-        if (factory)
-            name = g_strdup(gst_plugin_feature_get_name (factory));
-        gst_object_unref(vis_plugin);
-    }
-
-    GST_DEBUG_OBJECT (self, "vis-plugin '%s' %p", name, vis_plugin);
-
-    return name;
-}
-
-/**
- * player_set_visualization_enabled:
- * @player: #Player instance
- * @enabled: TRUE or FALSE
- *
- * Enable or disable the visualization.
- */
-void
-player_set_visualization_enabled(Player *self, gboolean enabled) {
-    g_return_if_fail (GST_IS_PLAYER(self));
-
-    if (enabled)
-        player_set_flag(self, GST_PLAY_FLAG_VIS);
-    else
-        player_clear_flag(self, GST_PLAY_FLAG_VIS);
-
-    GST_DEBUG_OBJECT (self, "visualization is '%s'",
-                      enabled ? "Enabled" : "Disabled");
-}
-
-struct CBChannelMap {
-    const gchar *label;           /* channel label name */
-    const gchar *name;            /* get_name () */
-};
-
-static const struct CBChannelMap cb_channel_map[] = {
-        /* GST_PLAYER_COLOR_BALANCE_BRIGHTNESS */ {"BRIGHTNESS", "brightness"},
-        /* GST_PLAYER_COLOR_BALANCE_CONTRAST   */
-                                                  {"CONTRAST",   "contrast"},
-        /* GST_PLAYER_COLOR_BALANCE_SATURATION */
-                                                  {"SATURATION", "saturation"},
-        /* GST_PLAYER_COLOR_BALANCE_HUE        */
-                                                  {"HUE",        "hue"},
-};
-
-
-/**
- * player_get_audio_video_offset:
- * @player: #Player instance
- *
- * Retrieve the current value of audio-video-offset property
- *
- * Returns: The current value of audio-video-offset in nanoseconds
- *
- * Since: 1.10
- */
-gint64
-player_get_audio_video_offset(Player *self) {
-    gint64 val = 0;
-
-    g_return_val_if_fail (GST_IS_PLAYER(self), DEFAULT_AUDIO_VIDEO_OFFSET);
-
-    g_object_get(self, "audio-video-offset", &val, NULL);
-
-    return val;
-}
-
-/**
- * player_set_audio_video_offset:
- * @player: #Player instance
- * @offset: #gint64 in nanoseconds
- *
- * Sets audio-video-offset property by value of @offset
- *
- * Since: 1.10
- */
-void
-player_set_audio_video_offset(Player *self, gint64 offset) {
-    g_return_if_fail (GST_IS_PLAYER(self));
-
-    g_object_set(self, "audio-video-offset", offset, NULL);
-}
-
-/**
- * player_get_subtitle_video_offset:
- * @player: #Player instance
- *
- * Retrieve the current value of subtitle-video-offset property
- *
- * Returns: The current value of subtitle-video-offset in nanoseconds
- *
- * Since: 1.16
- */
-gint64
-player_get_subtitle_video_offset(Player *self) {
-    gint64 val = 0;
-
-    g_return_val_if_fail (GST_IS_PLAYER(self), DEFAULT_SUBTITLE_VIDEO_OFFSET);
-
-    g_object_get(self, "subtitle-video-offset", &val, NULL);
-
-    return val;
-}
-
-/**
- * player_set_subtitle_video_offset:
- * @player: #Player instance
- * @offset: #gint64 in nanoseconds
- *
- * Sets subtitle-video-offset property by value of @offset
- *
- * Since: 1.16
- */
-void
-player_set_subtitle_video_offset(Player *self, gint64 offset) {
-    g_return_if_fail (GST_IS_PLAYER(self));
-
-    g_object_set(self, "subtitle-video-offset", offset, NULL);
-}
-
-
 #define C_ENUM(v) ((gint) v)
 #define C_FLAGS(v) ((guint) v)
-
-GType
-player_color_balance_type_get_type(void) {
-    static gsize id = 0;
-    static const GEnumValue values[] = {
-            {C_ENUM (GST_PLAYER_COLOR_BALANCE_HUE), "GST_PLAYER_COLOR_BALANCE_HUE",
-                                                                                           "hue"},
-            {C_ENUM (GST_PLAYER_COLOR_BALANCE_BRIGHTNESS),
-                                                    "GST_PLAYER_COLOR_BALANCE_BRIGHTNESS", "brightness"},
-            {C_ENUM (GST_PLAYER_COLOR_BALANCE_SATURATION),
-                                                    "GST_PLAYER_COLOR_BALANCE_SATURATION", "saturation"},
-            {C_ENUM (GST_PLAYER_COLOR_BALANCE_CONTRAST),
-                                                    "GST_PLAYER_COLOR_BALANCE_CONTRAST",   "contrast"},
-            {0, NULL, NULL}
-    };
-
-    if (g_once_init_enter (&id)) {
-        GType tmp = g_enum_register_static("PlayerColorBalanceType", values);
-        g_once_init_leave (&id, tmp);
-    }
-
-    return (GType) id;
-}
-
-/**
- * player_color_balance_type_get_name:
- * @type: a #PlayerColorBalanceType
- *
- * Gets a string representing the given color balance type.
- *
- * Returns: (transfer none): a string with the name of the color
- *   balance type.
- */
-const gchar *
-player_color_balance_type_get_name(PlayerColorBalanceType type) {
-    g_return_val_if_fail (type >= GST_PLAYER_COLOR_BALANCE_BRIGHTNESS &&
-                          type <= GST_PLAYER_COLOR_BALANCE_HUE, NULL);
-
-    return cb_channel_map[type].name;
-}
 
 GType
 player_state_get_type(void) {

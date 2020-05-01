@@ -47,27 +47,6 @@ typedef enum {
 
 const gchar *player_error_get_name(PlayerError error);
 
-GType player_color_balance_type_get_type(void);
-
-#define GST_TYPE_PLAYER_COLOR_BALANCE_TYPE            (player_color_balance_type_get_type ())
-
-/**
- * PlayerColorBalanceType:
- * @GST_PLAYER_COLOR_BALANCE_BRIGHTNESS: brightness or black level.
- * @GST_PLAYER_COLOR_BALANCE_CONTRAST: contrast or luma gain.
- * @GST_PLAYER_COLOR_BALANCE_SATURATION: color saturation or chroma
- * gain.
- * @GST_PLAYER_COLOR_BALANCE_HUE: hue or color balance.
- */
-typedef enum {
-    GST_PLAYER_COLOR_BALANCE_BRIGHTNESS,
-    GST_PLAYER_COLOR_BALANCE_CONTRAST,
-    GST_PLAYER_COLOR_BALANCE_SATURATION,
-    GST_PLAYER_COLOR_BALANCE_HUE,
-} PlayerColorBalanceType;
-
-const gchar *player_color_balance_type_get_name(PlayerColorBalanceType type);
-
 #define GST_TYPE_PLAYER             (player_get_type ())
 #define GST_IS_PLAYER(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GST_TYPE_PLAYER))
 #define GST_IS_PLAYER_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GST_TYPE_PLAYER))
@@ -171,18 +150,6 @@ void player_set_visualization_enabled(Player *player,
 
 
 gchar *player_get_current_visualization(Player *player);
-
-
-gboolean player_has_color_balance(Player *player);
-
-
-void player_set_color_balance(Player *player,
-                              PlayerColorBalanceType type,
-                              gdouble value);
-
-
-gdouble player_get_color_balance(Player *player,
-                                 PlayerColorBalanceType type);
 
 
 gint64 player_get_audio_video_offset(Player *player);
