@@ -15,17 +15,17 @@ GType player_state_get_type(void);
 
 /**
  * PlayerState:
- * @GST_PLAYER_STATE_STOPPED: the player is stopped.
- * @GST_PLAYER_STATE_BUFFERING: the player is buffering.
- * @GST_PLAYER_STATE_PAUSED: the player is paused.
- * @GST_PLAYER_STATE_PLAYING: the player is currently playing a
+ * @PLAYER_STATE_STOPPED: the player is stopped.
+ * @PLAYER_STATE_BUFFERING: the player is buffering.
+ * @PLAYER_STATE_PAUSED: the player is paused.
+ * @PLAYER_STATE_PLAYING: the player is currently playing a
  * stream.
  */
 typedef enum {
-    GST_PLAYER_STATE_STOPPED,
-    GST_PLAYER_STATE_BUFFERING,
-    GST_PLAYER_STATE_PAUSED,
-    GST_PLAYER_STATE_PLAYING
+    PLAYER_STATE_STOPPED,
+    PLAYER_STATE_BUFFERING,
+    PLAYER_STATE_PAUSED,
+    PLAYER_STATE_PLAYING
 } PlayerState;
 
 const gchar *player_state_get_name(PlayerState state);
@@ -34,15 +34,15 @@ GQuark player_error_quark(void);
 
 GType player_error_get_type(void);
 
-#define      GST_PLAYER_ERROR                         (player_error_quark ())
-#define      GST_TYPE_PLAYER_ERROR                    (player_error_get_type ())
+#define      PLAYER_ERROR                         (player_error_quark ())
+#define      TYPE_PLAYER_ERROR                    (player_error_get_type ())
 
 /**
  * PlayerError:
  * @GST_PLAYER_ERROR_FAILED: generic error.
  */
 typedef enum {
-    GST_PLAYER_ERROR_FAILED = 0
+    PLAYER_ERROR_FAILED = 0
 } PlayerError;
 
 const gchar *player_error_get_name(PlayerError error);

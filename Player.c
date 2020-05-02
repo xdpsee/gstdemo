@@ -20,9 +20,7 @@ GST_DEBUG_CATEGORY_STATIC (player_debug);
 #define DEFAULT_VOLUME 1.0
 #define DEFAULT_MUTE FALSE
 #define DEFAULT_RATE 1.0
-#define DEFAULT_POSITION_UPDATE_INTERVAL_MS 100
-#define DEFAULT_AUDIO_VIDEO_OFFSET 0
-#define DEFAULT_SUBTITLE_VIDEO_OFFSET 0
+#define DEFAULT_POSITION_UPDATE_INTERVAL_MS 500
 
 /**
  * player_error_quark:
@@ -131,7 +129,7 @@ struct _Player {
     GSource *seek_source;
     GstClockTime seek_position;
     /* If TRUE, all signals are inhibited except the
-   * state-changed:GST_PLAYER_STATE_STOPPED/PAUSED. This ensures that no signal
+   * state-changed:PLAYER_STATE_STOPPED/PAUSED. This ensures that no signal
    * is emitted after player_stop/pause() has been called by the user. */
     gboolean inhibit_sigs;
 
@@ -654,8 +652,8 @@ typedef struct {
 static void state_changed_dispatch(gpointer user_data) {
     StateChangedSignalData *data = user_data;
 
-    if (data->player->inhibit_sigs && data->state != GST_PLAYER_STATE_STOPPED
-        && data->state != GST_PLAYER_STATE_PAUSED)
+    if (data->player->inhibit_sigs && data->state != PLAYER_STATE_STOPPED
+        && data->state != PLAYER_STATE_PAUSED)
         return;
 
     g_signal_emit(data->player, signals[SIGNAL_STATE_CHANGED], 0, data->state);
@@ -837,7 +835,7 @@ static void emit_error(Player *self, GError *err) {
     self->is_live = FALSE;
     self->is_eos = FALSE;
     gst_element_set_state(self->playbin, GST_STATE_NULL);
-    change_state(self, GST_PLAYER_STATE_STOPPED);
+    change_state(self, PLAYER_STATE_STOPPED);
     self->buffering = 100;
 
     g_mutex_lock(&self->lock);
@@ -932,7 +930,7 @@ static void error_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg, gpointer user_d
         GST_ERROR_OBJECT (self, "Additional debug info: %s", debug);
 
     player_err =
-            g_error_new_literal(GST_PLAYER_ERROR, GST_PLAYER_ERROR_FAILED,
+            g_error_new_literal(PLAYER_ERROR, PLAYER_ERROR_FAILED,
                                 full_message);
     emit_error(self, player_err);
 
@@ -969,7 +967,7 @@ static void warning_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg, gpointer user
         GST_WARNING_OBJECT (self, "Additional debug info: %s", debug);
 
     player_err =
-            g_error_new_literal(GST_PLAYER_ERROR, GST_PLAYER_ERROR_FAILED,
+            g_error_new_literal(PLAYER_ERROR, PLAYER_ERROR_FAILED,
                                 full_message);
     emit_warning(self, player_err);
 
@@ -1003,7 +1001,7 @@ static void eos_cb(G_GNUC_UNUSED GstBus *bus, G_GNUC_UNUSED GstMessage *msg,
         player_signal_dispatcher_dispatch(self->signal_dispatcher, self,
                                           eos_dispatch, g_object_ref(self), (GDestroyNotify) g_object_unref);
     }
-    change_state(self, GST_PLAYER_STATE_STOPPED);
+    change_state(self, PLAYER_STATE_STOPPED);
     self->buffering = 100;
     self->is_eos = TRUE;
 }
@@ -1048,12 +1046,12 @@ static void buffering_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg, gpointer us
         state_ret = gst_element_set_state(self->playbin, GST_STATE_PAUSED);
 
         if (state_ret == GST_STATE_CHANGE_FAILURE) {
-            emit_error(self, g_error_new(GST_PLAYER_ERROR, GST_PLAYER_ERROR_FAILED,
+            emit_error(self, g_error_new(PLAYER_ERROR, PLAYER_ERROR_FAILED,
                                          "Failed to handle buffering"));
             return;
         }
 
-        change_state(self, GST_PLAYER_STATE_BUFFERING);
+        change_state(self, PLAYER_STATE_BUFFERING);
     }
 
     if (self->buffering != percent) {
@@ -1088,13 +1086,13 @@ static void buffering_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg, gpointer us
         state_ret = gst_element_set_state(self->playbin, GST_STATE_PLAYING);
         /* Application state change is happening when the state change happened */
         if (state_ret == GST_STATE_CHANGE_FAILURE)
-            emit_error(self, g_error_new(GST_PLAYER_ERROR, GST_PLAYER_ERROR_FAILED,
+            emit_error(self, g_error_new(PLAYER_ERROR, PLAYER_ERROR_FAILED,
                                          "Failed to handle buffering"));
     } else if (percent == 100 && self->target_state >= GST_STATE_PAUSED) {
         g_mutex_unlock(&self->lock);
 
         GST_DEBUG_OBJECT (self, "Buffering finished - staying PAUSED");
-        change_state(self, GST_PLAYER_STATE_PAUSED);
+        change_state(self, PLAYER_STATE_PAUSED);
     } else {
         g_mutex_unlock(&self->lock);
     }
@@ -1112,7 +1110,7 @@ static void clock_lost_cb(G_GNUC_UNUSED GstBus *bus, G_GNUC_UNUSED GstMessage *m
             state_ret = gst_element_set_state(self->playbin, GST_STATE_PLAYING);
 
         if (state_ret == GST_STATE_CHANGE_FAILURE)
-            emit_error(self, g_error_new(GST_PLAYER_ERROR, GST_PLAYER_ERROR_FAILED,
+            emit_error(self, g_error_new(PLAYER_ERROR, PLAYER_ERROR_FAILED,
                                          "Failed to handle clock loss"));
     }
 }
@@ -1305,10 +1303,10 @@ static void state_changed_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg,
 
                     state_ret = gst_element_set_state(self->playbin, GST_STATE_PLAYING);
                     if (state_ret == GST_STATE_CHANGE_FAILURE)
-                        emit_error(self, g_error_new(GST_PLAYER_ERROR,
-                                                     GST_PLAYER_ERROR_FAILED, "Failed to play"));
+                        emit_error(self, g_error_new(PLAYER_ERROR,
+                                                     PLAYER_ERROR_FAILED, "Failed to play"));
                 } else if (self->buffering == 100) {
-                    change_state(self, GST_PLAYER_STATE_PAUSED);
+                    change_state(self, PLAYER_STATE_PAUSED);
                 }
             } else {
                 g_mutex_unlock(&self->lock);
@@ -1320,14 +1318,14 @@ static void state_changed_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg,
        * if we seeked already but the state-change message was still queued up */
             if (!self->seek_pending) {
                 add_tick_source(self);
-                change_state(self, GST_PLAYER_STATE_PLAYING);
+                change_state(self, PLAYER_STATE_PLAYING);
             }
         } else if (new_state == GST_STATE_READY && old_state > GST_STATE_READY) {
-            change_state(self, GST_PLAYER_STATE_STOPPED);
+            change_state(self, PLAYER_STATE_STOPPED);
         } else {
             /* Otherwise we neither reached PLAYING nor PAUSED, so must
        * wait for something to happen... i.e. are BUFFERING now */
-            change_state(self, GST_PLAYER_STATE_BUFFERING);
+            change_state(self, PLAYER_STATE_BUFFERING);
         }
     }
 }
@@ -1365,7 +1363,7 @@ static void request_state_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg,
     self->target_state = state;
     state_ret = gst_element_set_state(self->playbin, state);
     if (state_ret == GST_STATE_CHANGE_FAILURE)
-        emit_error(self, g_error_new(GST_PLAYER_ERROR, GST_PLAYER_ERROR_FAILED,
+        emit_error(self, g_error_new(PLAYER_ERROR, PLAYER_ERROR_FAILED,
                                      "Failed to change to requested state %s",
                                      gst_element_state_get_name(state)));
 }
@@ -2263,7 +2261,7 @@ static gpointer player_main(gpointer data) {
 
     self->target_state = GST_STATE_NULL;
     self->current_state = GST_STATE_NULL;
-    change_state(self, GST_PLAYER_STATE_STOPPED);
+    change_state(self, PLAYER_STATE_STOPPED);
     self->buffering = 100;
     self->is_eos = FALSE;
     self->is_live = FALSE;
@@ -2313,16 +2311,6 @@ static gpointer player_init_once(G_GNUC_UNUSED gpointer user_data) {
     return NULL;
 }
 
-/**
- * player_new:
- * @signal_dispatcher: (transfer full) (allow-none): PlayerSignalDispatcher to use
- *
- * Creates a new #Player instance that uses @signal_dispatcher to dispatch
- * signals to some event loop system, or emits signals directly if NULL is
- * passed. See player_main_context_signal_dispatcher_new().
- *
- * Returns: (transfer full): a new #Player instance
- */
 Player *player_new(PlayerSignalDispatcher *signal_dispatcher) {
     static GOnce once = G_ONCE_INIT;
     Player *self;
@@ -2355,7 +2343,7 @@ static gboolean player_play_internal(gpointer user_data) {
     self->target_state = GST_STATE_PLAYING;
 
     if (self->current_state < GST_STATE_PAUSED)
-        change_state(self, GST_PLAYER_STATE_BUFFERING);
+        change_state(self, PLAYER_STATE_BUFFERING);
 
     if (self->current_state >= GST_STATE_PAUSED && !self->is_eos
         && self->buffering >= 100 && !(self->seek_position != GST_CLOCK_TIME_NONE
@@ -2366,7 +2354,7 @@ static gboolean player_play_internal(gpointer user_data) {
     }
 
     if (state_ret == GST_STATE_CHANGE_FAILURE) {
-        emit_error(self, g_error_new(GST_PLAYER_ERROR, GST_PLAYER_ERROR_FAILED,
+        emit_error(self, g_error_new(PLAYER_ERROR, PLAYER_ERROR_FAILED,
                                      "Failed to play"));
         return G_SOURCE_REMOVE;
     } else if (state_ret == GST_STATE_CHANGE_NO_PREROLL) {
@@ -2392,12 +2380,6 @@ static gboolean player_play_internal(gpointer user_data) {
     return G_SOURCE_REMOVE;
 }
 
-/**
- * player_play:
- * @player: #Player instance
- *
- * Request to play the loaded stream.
- */
 void player_play(Player *player) {
     g_return_if_fail (GST_IS_PLAYER(player));
 
@@ -2429,11 +2411,11 @@ static gboolean player_pause_internal(gpointer user_data) {
     self->target_state = GST_STATE_PAUSED;
 
     if (self->current_state < GST_STATE_PAUSED)
-        change_state(self, GST_PLAYER_STATE_BUFFERING);
+        change_state(self, PLAYER_STATE_BUFFERING);
 
     state_ret = gst_element_set_state(self->playbin, GST_STATE_PAUSED);
     if (state_ret == GST_STATE_CHANGE_FAILURE) {
-        emit_error(self, g_error_new(GST_PLAYER_ERROR, GST_PLAYER_ERROR_FAILED,
+        emit_error(self, g_error_new(PLAYER_ERROR, PLAYER_ERROR_FAILED,
                                      "Failed to pause"));
         return G_SOURCE_REMOVE;
     } else if (state_ret == GST_STATE_CHANGE_NO_PREROLL) {
@@ -2459,12 +2441,6 @@ static gboolean player_pause_internal(gpointer user_data) {
     return G_SOURCE_REMOVE;
 }
 
-/**
- * player_pause:
- * @player: #Player instance
- *
- * Pauses the current stream.
- */
 void player_pause(Player *player) {
     g_return_if_fail (GST_IS_PLAYER(player));
 
@@ -2498,8 +2474,8 @@ static void player_stop_internal(Player *self, gboolean transient) {
     gst_bus_set_flushing(self->bus, FALSE);
     change_state(self, transient
                        && self->app_state !=
-                          GST_PLAYER_STATE_STOPPED ? GST_PLAYER_STATE_BUFFERING :
-                       GST_PLAYER_STATE_STOPPED);
+                          PLAYER_STATE_STOPPED ? PLAYER_STATE_BUFFERING :
+                       PLAYER_STATE_STOPPED);
     self->buffering = 100;
     self->cached_duration = GST_CLOCK_TIME_NONE;
     g_mutex_lock(&self->lock);
@@ -2540,14 +2516,6 @@ static gboolean player_stop_internal_dispatch(gpointer user_data) {
     return G_SOURCE_REMOVE;
 }
 
-
-/**
- * player_stop:
- * @player: #Player instance
- *
- * Stops playing the current stream and resets to the first position
- * in the stream.
- */
 void player_stop(Player *player) {
     g_return_if_fail (GST_IS_PLAYER(player));
 
@@ -2578,7 +2546,7 @@ static void player_seek_internal_locked(Player *self) {
         g_mutex_unlock(&self->lock);
         state_ret = gst_element_set_state(self->playbin, GST_STATE_PAUSED);
         if (state_ret == GST_STATE_CHANGE_FAILURE) {
-            emit_error(self, g_error_new(GST_PLAYER_ERROR, GST_PLAYER_ERROR_FAILED,
+            emit_error(self, g_error_new(PLAYER_ERROR, PLAYER_ERROR_FAILED,
                                          "Failed to seek"));
             g_mutex_lock(&self->lock);
             return;
@@ -2624,7 +2592,7 @@ static void player_seek_internal_locked(Player *self) {
 
     ret = gst_element_send_event(self->playbin, s_event);
     if (!ret)
-        emit_error(self, g_error_new(GST_PLAYER_ERROR, GST_PLAYER_ERROR_FAILED,
+        emit_error(self, g_error_new(PLAYER_ERROR, PLAYER_ERROR_FAILED,
                                      "Failed to seek to %" GST_TIME_FORMAT, GST_TIME_ARGS (position)));
 
     g_mutex_lock(&self->lock);
@@ -2640,13 +2608,6 @@ static gboolean player_seek_internal(gpointer user_data) {
     return G_SOURCE_REMOVE;
 }
 
-/**
- * player_set_rate:
- * @player: #Player instance
- * @rate: playback rate
- *
- * Playback at specified rate
- */
 void player_set_rate(Player *player, gdouble rate) {
     g_return_if_fail (GST_IS_PLAYER(player));
     g_return_if_fail (rate != 0.0);
@@ -2654,12 +2615,6 @@ void player_set_rate(Player *player, gdouble rate) {
     g_object_set(player, "rate", rate, NULL);
 }
 
-/**
- * player_get_rate:
- * @player: #Player instance
- *
- * Returns: current playback rate
- */
 gdouble player_get_rate(Player *player) {
     gdouble val;
 
@@ -2697,7 +2652,6 @@ void player_seek(Player *player, GstClockTime position) {
    */
     if (!player->seek_source) {
         GstClockTime now = gst_util_get_timestamp();
-
         /* If no seek is pending or it was started more than 250 mseconds ago seek
      * immediately, otherwise wait until the 250 mseconds have passed */
         if (!player->seek_pending || (now - player->last_seek_time > 250 * GST_MSECOND)) {
@@ -2709,7 +2663,6 @@ void player_seek(Player *player, GstClockTime position) {
             g_source_attach(player->seek_source, player->context);
         } else {
             guint delay = 250000 - (now - player->last_seek_time) / 1000;
-
             /* Note that last_seek_time must be set to something at this point and
        * it must be smaller than 250 mseconds */
             player->seek_source = g_timeout_source_new(delay);
@@ -2734,15 +2687,6 @@ static void remove_seek_source(Player *self) {
     self->seek_source = NULL;
 }
 
-/**
- * player_get_uri:
- * @player: #Player instance
- *
- * Gets the URI of the currently-playing stream.
- *
- * Returns: (transfer full): a string containing the URI of the
- * currently-playing stream. g_free() after usage.
- */
 gchar *player_get_uri(Player *player) {
     gchar *val;
 
@@ -2753,26 +2697,12 @@ gchar *player_get_uri(Player *player) {
     return val;
 }
 
-/**
- * player_set_uri:
- * @player: #Player instance
- * @uri: next URI to play.
- *
- * Sets the next URI to play.
- */
 void player_set_uri(Player *player, const gchar *uri) {
     g_return_if_fail (GST_IS_PLAYER(player));
 
     g_object_set(player, "uri", uri, NULL);
 }
 
-/**
- * player_get_position:
- * @player: #Player instance
- *
- * Returns: the absolute position time, in nanoseconds, of the
- * currently-playing stream.
- */
 GstClockTime player_get_position(Player *player) {
     GstClockTime val;
 
@@ -2783,15 +2713,6 @@ GstClockTime player_get_position(Player *player) {
     return val;
 }
 
-/**
- * player_get_duration:
- * @player: #Player instance
- *
- * Retrieves the duration of the media stream that self represents.
- *
- * Returns: the duration of the currently-playing media stream, in
- * nanoseconds.
- */
 GstClockTime player_get_duration(Player *player) {
     GstClockTime val;
 
@@ -2802,14 +2723,6 @@ GstClockTime player_get_duration(Player *player) {
     return val;
 }
 
-/**
- * player_get_volume:
- * @player: #Player instance
- *
- * Returns the current volume level, as a percentage between 0 and 1.
- *
- * Returns: the volume as percentage between 0 and 1.
- */
 gdouble player_get_volume(Player *self) {
     gdouble val;
 
@@ -2820,25 +2733,12 @@ gdouble player_get_volume(Player *self) {
     return val;
 }
 
-/**
- * player_set_volume:
- * @player: #Player instance
- * @val: the new volume level, as a percentage between 0 and 1
- *
- * Sets the volume level of the stream as a percentage between 0 and 1.
- */
 void player_set_volume(Player *self, gdouble val) {
     g_return_if_fail (GST_IS_PLAYER(self));
 
     g_object_set(self, "volume", val, NULL);
 }
 
-/**
- * player_get_mute:
- * @player: #Player instance
- *
- * Returns: %TRUE if the currently-playing stream is muted.
- */
 gboolean player_get_mute(Player *self) {
     gboolean val;
 
@@ -2849,25 +2749,12 @@ gboolean player_get_mute(Player *self) {
     return val;
 }
 
-/**
- * player_set_mute:
- * @player: #Player instance
- * @val: Mute state the should be set
- *
- * %TRUE if the currently-playing stream should be muted.
- */
 void player_set_mute(Player *self, gboolean val) {
     g_return_if_fail (GST_IS_PLAYER(self));
 
     g_object_set(self, "mute", val, NULL);
 }
 
-/**
- * player_get_pipeline:
- * @player: #Player instance
- *
- * Returns: (transfer full): The internal playbin instance
- */
 GstElement *player_get_pipeline(Player *self) {
     GstElement *val;
 
@@ -2878,16 +2765,6 @@ GstElement *player_get_pipeline(Player *self) {
     return val;
 }
 
-/**
- * player_get_media_info:
- * @player: #Player instance
- *
- * A Function to get the current media info #PlayerMediaInfo instance.
- *
- * Returns: (transfer full): media info instance.
- *
- * The caller should free it with g_object_unref()
- */
 PlayerMediaInfo *player_get_media_info(Player *self) {
     PlayerMediaInfo *info;
 
@@ -2903,16 +2780,6 @@ PlayerMediaInfo *player_get_media_info(Player *self) {
     return info;
 }
 
-/**
- * player_get_current_audio_track:
- * @player: #Player instance
- *
- * A Function to get current audio #PlayerAudioInfo instance.
- *
- * Returns: (transfer full): current audio track.
- *
- * The caller should free it with g_object_unref()
- */
 PlayerAudioInfo *player_get_current_audio_track(Player *self) {
     PlayerAudioInfo *info;
 
@@ -2958,15 +2825,6 @@ static gboolean player_select_streams(Player *self) {
     return ret;
 }
 
-/**
- * player_set_audio_track:
- * @player: #Player instance
- * @stream_index: stream index
- *
- * Returns: %TRUE or %FALSE
- *
- * Sets the audio track @stream_idex.
- */
 gboolean player_set_audio_track(Player *self, gint stream_index) {
     PlayerStreamInfo *info;
     gboolean ret = TRUE;
@@ -2997,15 +2855,7 @@ gboolean player_set_audio_track(Player *self, gint stream_index) {
     return ret;
 }
 
-/**
- * player_set_audio_track_enabled:
- * @player: #Player instance
- * @enabled: TRUE or FALSE
- *
- * Enable or disable the current audio track.
- */
-void
-player_set_audio_track_enabled(Player *self, gboolean enabled) {
+void player_set_audio_track_enabled(Player *self, gboolean enabled) {
     g_return_if_fail (GST_IS_PLAYER(self));
 
     if (enabled)
@@ -3016,15 +2866,7 @@ player_set_audio_track_enabled(Player *self, gboolean enabled) {
     GST_DEBUG_OBJECT (self, "track is '%s'", enabled ? "Enabled" : "Disabled");
 }
 
-/**
- * player_set_video_track_enabled:
- * @player: #Player instance
- * @enabled: TRUE or FALSE
- *
- * Enable or disable the current video track.
- */
-void
-player_set_video_track_enabled(Player *self, gboolean enabled) {
+void player_set_video_track_enabled(Player *self, gboolean enabled) {
     g_return_if_fail (GST_IS_PLAYER(self));
 
     if (enabled)
@@ -3035,15 +2877,7 @@ player_set_video_track_enabled(Player *self, gboolean enabled) {
     GST_DEBUG_OBJECT (self, "track is '%s'", enabled ? "Enabled" : "Disabled");
 }
 
-/**
- * player_set_subtitle_track_enabled:
- * @player: #Player instance
- * @enabled: TRUE or FALSE
- *
- * Enable or disable the current subtitle track.
- */
-void
-player_set_subtitle_track_enabled(Player *self, gboolean enabled) {
+void player_set_subtitle_track_enabled(Player *self, gboolean enabled) {
     g_return_if_fail (GST_IS_PLAYER(self));
 
     if (enabled)
@@ -3057,15 +2891,14 @@ player_set_subtitle_track_enabled(Player *self, gboolean enabled) {
 #define C_ENUM(v) ((gint) v)
 #define C_FLAGS(v) ((guint) v)
 
-GType
-player_state_get_type(void) {
+GType player_state_get_type(void) {
     static gsize id = 0;
     static const GEnumValue values[] = {
-            {C_ENUM (GST_PLAYER_STATE_STOPPED),   "GST_PLAYER_STATE_STOPPED", "stopped"},
-            {C_ENUM (GST_PLAYER_STATE_BUFFERING), "GST_PLAYER_STATE_BUFFERING",
-                                                                              "buffering"},
-            {C_ENUM (GST_PLAYER_STATE_PAUSED),    "GST_PLAYER_STATE_PAUSED",  "paused"},
-            {C_ENUM (GST_PLAYER_STATE_PLAYING),   "GST_PLAYER_STATE_PLAYING", "playing"},
+            {C_ENUM (PLAYER_STATE_STOPPED),   "PLAYER_STATE_STOPPED",     "stopped"},
+            {C_ENUM (PLAYER_STATE_BUFFERING), "PLAYER_STATE_BUFFERING",
+                                                                          "buffering"},
+            {C_ENUM (PLAYER_STATE_PAUSED),    "PLAYER_STATE_PAUSED",      "paused"},
+            {C_ENUM (PLAYER_STATE_PLAYING),   "PLAYER_STATE_PLAYING", "playing"},
             {0, NULL, NULL}
     };
 
@@ -3077,24 +2910,15 @@ player_state_get_type(void) {
     return (GType) id;
 }
 
-/**
- * player_state_get_name:
- * @state: a #PlayerState
- *
- * Gets a string representing the given state.
- *
- * Returns: (transfer none): a string with the name of the state.
- */
-const gchar *
-player_state_get_name(PlayerState state) {
+const gchar *player_state_get_name(PlayerState state) {
     switch (state) {
-        case GST_PLAYER_STATE_STOPPED:
+        case PLAYER_STATE_STOPPED:
             return "stopped";
-        case GST_PLAYER_STATE_BUFFERING:
+        case PLAYER_STATE_BUFFERING:
             return "buffering";
-        case GST_PLAYER_STATE_PAUSED:
+        case PLAYER_STATE_PAUSED:
             return "paused";
-        case GST_PLAYER_STATE_PLAYING:
+        case PLAYER_STATE_PLAYING:
             return "playing";
     }
 
@@ -3102,11 +2926,10 @@ player_state_get_name(PlayerState state) {
     return NULL;
 }
 
-GType
-player_error_get_type(void) {
+GType player_error_get_type(void) {
     static gsize id = 0;
     static const GEnumValue values[] = {
-            {C_ENUM (GST_PLAYER_ERROR_FAILED), "GST_PLAYER_ERROR_FAILED", "failed"},
+            {C_ENUM (PLAYER_ERROR_FAILED), "PLAYER_ERROR_FAILED", "failed"},
             {0, NULL, NULL}
     };
 
@@ -3118,18 +2941,9 @@ player_error_get_type(void) {
     return (GType) id;
 }
 
-/**
- * player_error_get_name:
- * @error: a #PlayerError
- *
- * Gets a string representing the given error.
- *
- * Returns: (transfer none): a string with the given error.
- */
-const gchar *
-player_error_get_name(PlayerError error) {
+const gchar *player_error_get_name(PlayerError error) {
     switch (error) {
-        case GST_PLAYER_ERROR_FAILED:
+        case PLAYER_ERROR_FAILED:
             return "failed";
     }
 
@@ -3137,32 +2951,13 @@ player_error_get_name(PlayerError error) {
     return NULL;
 }
 
-/**
- * player_set_config:
- * @player: #Player instance
- * @config: (transfer full): a #GstStructure
- *
- * Set the configuration of the player. If the player is already configured, and
- * the configuration haven't change, this function will return %TRUE. If the
- * player is not in the GST_PLAYER_STATE_STOPPED, this method will return %FALSE
- * and active configuration will remain.
- *
- * @config is a #GstStructure that contains the configuration parameters for
- * the player.
- *
- * This function takes ownership of @config.
- *
- * Returns: %TRUE when the configuration could be set.
- * Since: 1.10
- */
-gboolean
-player_set_config(Player *self, GstStructure *config) {
+gboolean player_set_config(Player *self, GstStructure *config) {
     g_return_val_if_fail (GST_IS_PLAYER(self), FALSE);
     g_return_val_if_fail (config != NULL, FALSE);
 
     g_mutex_lock(&self->lock);
 
-    if (self->app_state != GST_PLAYER_STATE_STOPPED) {
+    if (self->app_state != PLAYER_STATE_STOPPED) {
         GST_INFO_OBJECT (self, "can't change config while player is %s",
                          player_state_get_name(self->app_state));
         g_mutex_unlock(&self->lock);
@@ -3177,21 +2972,7 @@ player_set_config(Player *self, GstStructure *config) {
     return TRUE;
 }
 
-/**
- * player_get_config:
- * @player: #Player instance
- *
- * Get a copy of the current configuration of the player. This configuration
- * can either be modified and used for the player_set_config() call
- * or it must be freed after usage.
- *
- * Returns: (transfer full): a copy of the current configuration of @player. Use
- * gst_structure_free() after usage or player_set_config().
- *
- * Since: 1.10
- */
-GstStructure *
-player_get_config(Player *self) {
+GstStructure *player_get_config(Player *self) {
     GstStructure *ret;
 
     g_return_val_if_fail (GST_IS_PLAYER(self), NULL);
@@ -3203,19 +2984,7 @@ player_get_config(Player *self) {
     return ret;
 }
 
-/**
- * player_config_set_user_agent:
- * @config: a #Player configuration
- * @agent: the string to use as user agent
- *
- * Set the user agent to pass to the server if @player needs to connect
- * to a server during playback. This is typically used when playing HTTP
- * or RTSP streams.
- *
- * Since: 1.10
- */
-void
-player_config_set_user_agent(GstStructure *config, const gchar *agent) {
+void player_config_set_user_agent(GstStructure *config, const gchar *agent) {
     g_return_if_fail (config != NULL);
     g_return_if_fail (agent != NULL);
 
@@ -3223,18 +2992,7 @@ player_config_set_user_agent(GstStructure *config, const gchar *agent) {
                          CONFIG_QUARK (USER_AGENT), G_TYPE_STRING, agent, NULL);
 }
 
-/**
- * player_config_get_user_agent:
- * @config: a #Player configuration
- *
- * Return the user agent which has been configured using
- * player_config_set_user_agent() if any.
- *
- * Returns: (transfer full): the configured agent, or %NULL
- * Since: 1.10
- */
-gchar *
-player_config_get_user_agent(const GstStructure *config) {
+gchar *player_config_get_user_agent(const GstStructure *config) {
     gchar *agent = NULL;
 
     g_return_val_if_fail (config != NULL, NULL);
@@ -3245,15 +3003,6 @@ player_config_get_user_agent(const GstStructure *config) {
     return agent;
 }
 
-/**
- * player_config_set_position_update_interval:
- * @config: a #Player configuration
- * @interval: interval in ms
- *
- * set interval in milliseconds between two position-updated signals.
- * pass 0 to stop updating the position.
- * Since: 1.10
- */
 void player_config_set_position_update_interval(GstStructure *config,
                                                 guint interval) {
     g_return_if_fail (config != NULL);
@@ -3263,14 +3012,6 @@ void player_config_set_position_update_interval(GstStructure *config,
                          CONFIG_QUARK (POSITION_INTERVAL_UPDATE), G_TYPE_UINT, interval, NULL);
 }
 
-/**
- * player_config_get_position_update_interval:
- * @config: a #Player configuration
- *
- * Returns: current position update interval in milliseconds
- *
- * Since: 1.10
- */
 guint player_config_get_position_update_interval(const GstStructure *config) {
     guint interval = DEFAULT_POSITION_UPDATE_INTERVAL_MS;
 
@@ -3285,41 +3026,14 @@ guint player_config_get_position_update_interval(const GstStructure *config) {
     return interval;
 }
 
-/**
- * player_config_set_seek_accurate:
- * @config: a #Player configuration
- * @accurate: accurate seek or not
- *
- * Enable or disable accurate seeking. When enabled, elements will try harder
- * to seek as accurately as possible to the requested seek position. Generally
- * it will be slower especially for formats that don't have any indexes or
- * timestamp markers in the stream.
- *
- * If accurate seeking is disabled, elements will seek as close as the request
- * position without slowing down seeking too much.
- *
- * Accurate seeking is disabled by default.
- *
- * Since: 1.12
- */
-void
-player_config_set_seek_accurate(GstStructure *config, gboolean accurate) {
+void player_config_set_seek_accurate(GstStructure *config, gboolean accurate) {
     g_return_if_fail (config != NULL);
 
     gst_structure_id_set(config,
                          CONFIG_QUARK (ACCURATE_SEEK), G_TYPE_BOOLEAN, accurate, NULL);
 }
 
-/**
- * player_config_get_seek_accurate:
- * @config: a #Player configuration
- *
- * Returns: %TRUE if accurate seeking is enabled
- *
- * Since: 1.12
- */
-gboolean
-player_config_get_seek_accurate(const GstStructure *config) {
+gboolean player_config_get_seek_accurate(const GstStructure *config) {
     gboolean accurate = FALSE;
 
     g_return_val_if_fail (config != NULL, FALSE);

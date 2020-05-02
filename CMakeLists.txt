@@ -8,9 +8,9 @@ find_package(PkgConfig)
 
 # Look for GStreamer installation
 pkg_check_modules(GST REQUIRED gstreamer-1.0)
-pkg_check_modules(GST REQUIRED gstreamer-tag-1.0)
-pkg_check_modules(GST REQUIRED gstreamer-pbutils-1.0)
 pkg_check_modules(GST REQUIRED gstreamer-plugins-base-1.0)
+pkg_check_modules(GST REQUIRED gstreamer-pbutils-1.0)
+pkg_check_modules(GST REQUIRED gstreamer-tag-1.0)
 
 add_executable(gstdemo
         playback.c
