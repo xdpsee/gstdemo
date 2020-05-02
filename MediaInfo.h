@@ -126,16 +126,10 @@ GST_PLAYER_API
 guint         player_media_info_get_number_of_audio_streams (const PlayerMediaInfo *info);
 
 GST_PLAYER_API
-GstTagList*   player_media_info_get_tags (const PlayerMediaInfo *info);
-
-GST_PLAYER_API
 const gchar*  player_media_info_get_title (const PlayerMediaInfo *info);
 
 GST_PLAYER_API
 const gchar*  player_media_info_get_container_format (const PlayerMediaInfo *info);
-
-GST_PLAYER_API
-GstSample*    player_media_info_get_image_sample (const PlayerMediaInfo *info);
 
 GST_PLAYER_DEPRECATED_FOR(player_media_info_get_audio_streams)
 GList*        player_get_audio_streams    (const PlayerMediaInfo *info);

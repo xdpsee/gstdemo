@@ -45,14 +45,12 @@ struct _PlayerMediaInfo
   gchar *uri;
   gchar *title;
   gchar *container;
-  gboolean seekable, is_live;
-  GstTagList *tags;
-  GstSample *image_sample;
+  gboolean seekable;
+  gboolean is_live;
+  //GstTagList *tags;
 
   GList *stream_list;
   GList *audio_stream_list;
-  GList *video_stream_list;
-  GList *subtitle_stream_list;
 
   GstClockTime  duration;
 };

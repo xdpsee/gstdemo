@@ -1377,12 +1377,7 @@ static void media_info_update(Player *self, PlayerMediaInfo *info) {
     g_free(info->container);
     info->container = get_from_tags(self, info, get_container_format);
 
-    if (info->image_sample)
-        gst_sample_unref(info->image_sample);
-    info->image_sample = get_from_tags(self, info, get_cover_sample);
-
-    GST_DEBUG_OBJECT (self, "title: %s, container: %s "
-                            "image_sample: %p", info->title, info->container, info->image_sample);
+    GST_DEBUG_OBJECT (self, "title: %s, container: %s ", info->title, info->container);
 }
 
 static void tags_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg, gpointer user_data) {
@@ -1398,9 +1393,6 @@ static void tags_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg, gpointer user_da
     if (gst_tag_list_get_scope(tags) == GST_TAG_SCOPE_GLOBAL) {
         g_mutex_lock(&self->lock);
         if (self->media_info) {
-            if (self->media_info->tags)
-                gst_tag_list_unref(self->media_info->tags);
-            self->media_info->tags = gst_tag_list_ref(tags);
             media_info_update(self, self->media_info);
             g_mutex_unlock(&self->lock);
             emit_media_info_updated_signal(self);
@@ -2037,12 +2029,6 @@ static void *get_from_tags(Player *self, PlayerMediaInfo *media_info,
     GList *l;
     void *ret = NULL;
 
-    if (media_info->tags) {
-        ret = func(media_info->tags);
-        if (ret)
-            return ret;
-    }
-
     /* if global tag does not exit then try audio streams */
     GST_DEBUG_OBJECT (self, "trying audio tags");
     for (l = player_media_info_get_audio_streams(media_info); l != NULL;
@@ -2078,7 +2064,6 @@ static PlayerMediaInfo *player_media_info_create(Player *self) {
     GST_DEBUG_OBJECT (self, "begin");
     media_info = player_media_info_new(self->uri);
     media_info->duration = player_get_duration(self);
-    media_info->tags = self->global_tags;
     media_info->is_live = self->is_live;
     self->global_tags = NULL;
 
@@ -2099,13 +2084,12 @@ static PlayerMediaInfo *player_media_info_create(Player *self) {
     media_info->title = get_from_tags(self, media_info, get_title);
     media_info->container =
             get_from_tags(self, media_info, get_container_format);
-    media_info->image_sample = get_from_tags(self, media_info, get_cover_sample);
 
     GST_DEBUG_OBJECT (self, "uri: %s title: %s duration: %" GST_TIME_FORMAT
-            " seekable: %s live: %s container: %s image_sample %p",
+            " seekable: %s live: %s container: %s",
                       media_info->uri, media_info->title, GST_TIME_ARGS(media_info->duration),
                       media_info->seekable ? "yes" : "no", media_info->is_live ? "yes" : "no",
-                      media_info->container, media_info->image_sample);
+                      media_info->container);
 
     GST_DEBUG_OBJECT (self, "end");
     return media_info;

@@ -205,24 +205,12 @@ static void player_media_info_finalize(GObject *object) {
 
     g_free(info->uri);
 
-    if (info->tags)
-        gst_tag_list_unref(info->tags);
-
     g_free(info->title);
 
     g_free(info->container);
 
-    if (info->image_sample)
-        gst_sample_unref(info->image_sample);
-
     if (info->audio_stream_list)
         g_list_free(info->audio_stream_list);
-
-    if (info->video_stream_list)
-        g_list_free(info->video_stream_list);
-
-    if (info->subtitle_stream_list)
-        g_list_free(info->subtitle_stream_list);
 
     if (info->stream_list)
         g_list_free_full(info->stream_list, g_object_unref);
@@ -292,14 +280,10 @@ PlayerMediaInfo *player_media_info_copy(PlayerMediaInfo *ref) {
     info->duration = ref->duration;
     info->seekable = ref->seekable;
     info->is_live = ref->is_live;
-    if (ref->tags)
-        info->tags = gst_tag_list_ref(ref->tags);
     if (ref->title)
         info->title = g_strdup(ref->title);
     if (ref->container)
         info->container = g_strdup(ref->container);
-    if (ref->image_sample)
-        info->image_sample = gst_sample_ref(ref->image_sample);
 
     for (l = ref->stream_list; l != NULL; l = l->next) {
         PlayerStreamInfo *s;
@@ -309,8 +293,6 @@ PlayerMediaInfo *player_media_info_copy(PlayerMediaInfo *ref) {
 
         if (GST_IS_PLAYER_AUDIO_INFO (s)){
             info->audio_stream_list = g_list_append(info->audio_stream_list, s);
-        } else {
-            info->subtitle_stream_list = g_list_append(info->subtitle_stream_list, s);
         }
     }
 
@@ -415,18 +397,6 @@ GstClockTime player_media_info_get_duration(const PlayerMediaInfo *info) {
 }
 
 /**
- * player_media_info_get_tags:
- * @info: a #PlayerMediaInfo
- *
- * Returns: (transfer none): the tags contained in media info.
- */
-GstTagList *player_media_info_get_tags(const PlayerMediaInfo *info) {
-    g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), NULL);
-
-    return info->tags;
-}
-
-/**
  * player_media_info_get_title:
  * @info: a #PlayerMediaInfo
  *
@@ -448,21 +418,6 @@ const gchar *player_media_info_get_container_format(const PlayerMediaInfo *info)
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), NULL);
 
     return info->container;
-}
-
-/**
- * player_media_info_get_image_sample:
- * @info: a #PlayerMediaInfo
- *
- * Function to get the image (or preview-image) stored in taglist.
- * Application can use `gst_sample_*_()` API's to get caps, buffer etc.
- *
- * Returns: (transfer none): GstSample or NULL.
- */
-GstSample *player_media_info_get_image_sample(const PlayerMediaInfo *info) {
-    g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), NULL);
-
-    return info->image_sample;
 }
 
 /**

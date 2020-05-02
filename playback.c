@@ -131,12 +131,6 @@ print_all_stream_info(PlayerMediaInfo *media_info) {
     g_print("URI : %s\n", player_media_info_get_uri(media_info));
     g_print("Duration: %" GST_TIME_FORMAT "\n",
             GST_TIME_ARGS (player_media_info_get_duration(media_info)));
-    g_print("Global taglist:\n");
-    if (player_media_info_get_tags(media_info))
-        gst_tag_list_foreach(player_media_info_get_tags(media_info),
-                             print_one_tag, NULL);
-    else
-        g_print("  (nil) \n");
 
     list = player_media_info_get_stream_list(media_info);
     if (!list)
@@ -172,11 +166,11 @@ print_all_audio_stream(PlayerMediaInfo *media_info) {
 
     g_print("All audio streams: \n");
     for (l = list; l != NULL; l = l->next) {
-        PlayerAudioInfo *info = (PlayerAudioInfo *) l->data;
-        PlayerStreamInfo *sinfo = (PlayerStreamInfo *) info;
-        g_print(" %s_%d #\n", player_stream_info_get_stream_type(sinfo),
-                player_stream_info_get_index(sinfo));
-        print_audio_info(info);
+        PlayerAudioInfo *audio_info = (PlayerAudioInfo *) l->data;
+        PlayerStreamInfo *stream_info = (PlayerStreamInfo *) audio_info;
+        g_print(" %s_%d #\n", player_stream_info_get_stream_type(stream_info),
+                player_stream_info_get_index(stream_info));
+        print_audio_info(audio_info);
     }
 }
 
@@ -200,8 +194,7 @@ print_media_info(PlayerMediaInfo *media_info) {
     g_print("\n");
 }
 
-static void
-media_info_cb(Player *player, PlayerMediaInfo *info, Playback *playback) {
+static void media_info_cb(Player *player, PlayerMediaInfo *info, Playback *playback) {
     static int once = 0;
 
     if (!once) {
