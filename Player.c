@@ -2,9 +2,9 @@
 #include "config.h"
 #endif
 
-#include "player-define.h"
-#include "player-signal-dispatcher-private.h"
-#include "player-media-info-private.h"
+#include "PlayerDefine.h"
+#include "PlayerSignalDispatcherPrivate.h"
+#include "MediaInfoPrivate.h"
 
 #include <gst/gst.h>
 #include <gst/pbutils/descriptions.h>
@@ -530,7 +530,7 @@ static void player_set_rate_internal(Player *self) {
 }
 
 static void player_set_property(GObject *object, guint prop_id,
-                    const GValue *value, GParamSpec *pspec) {
+                                const GValue *value, GParamSpec *pspec) {
     Player *self = GST_PLAYER (object);
 
     switch (prop_id) {
@@ -576,7 +576,7 @@ static void player_set_property(GObject *object, guint prop_id,
 }
 
 static void player_get_property(GObject *object, guint prop_id,
-                    GValue *value, GParamSpec *pspec) {
+                                GValue *value, GParamSpec *pspec) {
     Player *self = GST_PLAYER (object);
 
     switch (prop_id) {
@@ -990,7 +990,7 @@ static void eos_dispatch(gpointer user_data) {
 }
 
 static void eos_cb(G_GNUC_UNUSED GstBus *bus, G_GNUC_UNUSED GstMessage *msg,
-       gpointer user_data) {
+                   gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
 
     GST_DEBUG_OBJECT (self, "End of stream");
@@ -1101,7 +1101,7 @@ static void buffering_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg, gpointer us
 }
 
 static void clock_lost_cb(G_GNUC_UNUSED GstBus *bus, G_GNUC_UNUSED GstMessage *msg,
-              gpointer user_data) {
+                          gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
     GstStateChangeReturn state_ret;
 
@@ -1118,7 +1118,7 @@ static void clock_lost_cb(G_GNUC_UNUSED GstBus *bus, G_GNUC_UNUSED GstMessage *m
 }
 
 static void notify_caps_cb(G_GNUC_UNUSED GObject *object,
-               G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data) {
+                           G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
 
 }
@@ -1211,7 +1211,7 @@ static void emit_seek_done(Player *self) {
 }
 
 static void state_changed_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg,
-                 gpointer user_data) {
+                             gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
     GstState old_state, new_state, pending_state;
 
@@ -1333,7 +1333,7 @@ static void state_changed_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg,
 }
 
 static void duration_changed_cb(G_GNUC_UNUSED GstBus *bus, G_GNUC_UNUSED GstMessage *msg,
-                    gpointer user_data) {
+                                gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
     gint64 duration = GST_CLOCK_TIME_NONE;
 
@@ -1343,7 +1343,7 @@ static void duration_changed_cb(G_GNUC_UNUSED GstBus *bus, G_GNUC_UNUSED GstMess
 }
 
 static void latency_cb(G_GNUC_UNUSED GstBus *bus, G_GNUC_UNUSED GstMessage *msg,
-           gpointer user_data) {
+                       gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
 
     GST_DEBUG_OBJECT (self, "Latency changed");
@@ -1352,7 +1352,7 @@ static void latency_cb(G_GNUC_UNUSED GstBus *bus, G_GNUC_UNUSED GstMessage *msg,
 }
 
 static void request_state_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg,
-                 gpointer user_data) {
+                             gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
     GstState state;
     GstStateChangeReturn state_ret;
@@ -1494,7 +1494,7 @@ static gboolean update_stream_collection(Player *self, GstStreamCollection *coll
 }
 
 static void stream_collection_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg,
-                     gpointer user_data) {
+                                 gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
     GstStreamCollection *collection = NULL;
     gboolean updated = FALSE;
@@ -1514,7 +1514,7 @@ static void stream_collection_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg,
 }
 
 static void streams_selected_cb(G_GNUC_UNUSED GstBus *bus, GstMessage *msg,
-                    gpointer user_data) {
+                                gpointer user_data) {
     Player *self = GST_PLAYER (user_data);
     GstStreamCollection *collection = NULL;
     gboolean updated = FALSE;
@@ -1724,7 +1724,7 @@ static void player_audio_info_update(Player *self,
 }
 
 static PlayerStreamInfo *player_stream_info_find(PlayerMediaInfo *media_info,
-                        GType type, gint stream_index) {
+                                                 GType type, gint stream_index) {
     GList *list, *l;
     PlayerStreamInfo *info = NULL;
 
@@ -1742,8 +1742,8 @@ static PlayerStreamInfo *player_stream_info_find(PlayerMediaInfo *media_info,
     return NULL;
 }
 
-static PlayerStreamInfo * player_stream_info_find_from_stream_id(PlayerMediaInfo *media_info,
-                                       const gchar *stream_id) {
+static PlayerStreamInfo *player_stream_info_find_from_stream_id(PlayerMediaInfo *media_info,
+                                                                const gchar *stream_id) {
     GList *list, *l;
     PlayerStreamInfo *info = NULL;
 
@@ -1773,7 +1773,7 @@ static gboolean is_track_enabled(Player *self, gint pos) {
 }
 
 static PlayerStreamInfo *player_stream_info_get_current(Player *self, const gchar *prop,
-                               GType type) {
+                                                        GType type) {
     gint current;
     PlayerStreamInfo *info;
 
@@ -1791,7 +1791,7 @@ static PlayerStreamInfo *player_stream_info_get_current(Player *self, const gcha
 }
 
 static PlayerStreamInfo *player_stream_info_get_current_from_stream_id(Player *self,
-                                              const gchar *stream_id, GType type) {
+                                                                       const gchar *stream_id, GType type) {
     PlayerStreamInfo *info;
 
     if (!self->media_info || !stream_id)
@@ -1810,7 +1810,7 @@ static PlayerStreamInfo *player_stream_info_get_current_from_stream_id(Player *s
 }
 
 static void stream_notify_cb(GstStreamCollection *collection, GstStream *stream,
-                 GParamSpec *pspec, Player *self) {
+                             GParamSpec *pspec, Player *self) {
     PlayerStreamInfo *info;
     const gchar *stream_id;
     gboolean emit_signal = FALSE;
@@ -1871,7 +1871,7 @@ static gchar *stream_info_get_codec(PlayerStreamInfo *s) {
 }
 
 static void player_stream_info_update_tags_and_caps(Player *self,
-                                        PlayerStreamInfo *s) {
+                                                    PlayerStreamInfo *s) {
     GstTagList *tags;
     gint stream_index;
 
@@ -1899,7 +1899,7 @@ static void player_stream_info_update_tags_and_caps(Player *self,
 }
 
 static void player_streams_info_create(Player *self,
-                           PlayerMediaInfo *media_info, const gchar *prop, GType type) {
+                                       PlayerMediaInfo *media_info, const gchar *prop, GType type) {
     gint i;
     gint total = -1;
     PlayerStreamInfo *s;
@@ -1937,7 +1937,7 @@ static void player_streams_info_create(Player *self,
 }
 
 static void player_stream_info_update_from_stream(Player *self,
-                                      PlayerStreamInfo *s, GstStream *stream) {
+                                                  PlayerStreamInfo *s, GstStream *stream) {
     if (s->tags)
         gst_tag_list_unref(s->tags);
     s->tags = gst_stream_get_tags(stream);
@@ -1957,7 +1957,7 @@ static void player_stream_info_update_from_stream(Player *self,
 }
 
 static void player_streams_info_create_from_collection(Player *self,
-                                           PlayerMediaInfo *media_info, GstStreamCollection *collection) {
+                                                       PlayerMediaInfo *media_info, GstStreamCollection *collection) {
     guint i;
     guint total;
     PlayerStreamInfo *s;
@@ -2033,7 +2033,7 @@ static void *get_container_format(GstTagList *tags) {
 }
 
 static void *get_from_tags(Player *self, PlayerMediaInfo *media_info,
-              void *(*func)(GstTagList *)) {
+                           void *(*func)(GstTagList *)) {
     GList *l;
     void *ret = NULL;
 
@@ -2127,7 +2127,7 @@ static void tags_changed_cb(Player *self, gint stream_index, GType type) {
 }
 
 static void audio_tags_changed_cb(G_GNUC_UNUSED GstElement *playbin, gint stream_index,
-                      gpointer user_data) {
+                                  gpointer user_data) {
     tags_changed_cb(GST_PLAYER (user_data), stream_index,
                     GST_TYPE_PLAYER_AUDIO_INFO);
 }
@@ -2143,7 +2143,7 @@ static void volume_changed_dispatch(gpointer user_data) {
 }
 
 static void volume_notify_cb(G_GNUC_UNUSED GObject *obj, G_GNUC_UNUSED GParamSpec *pspec,
-                 Player *self) {
+                             Player *self) {
     if (g_signal_handler_find(self, G_SIGNAL_MATCH_ID,
                               signals[SIGNAL_VOLUME_CHANGED], 0, NULL, NULL, NULL) != 0) {
         player_signal_dispatcher_dispatch(self->signal_dispatcher, self,
@@ -2163,7 +2163,7 @@ static void mute_changed_dispatch(gpointer user_data) {
 }
 
 static void mute_notify_cb(G_GNUC_UNUSED GObject *obj, G_GNUC_UNUSED GParamSpec *pspec,
-               Player *self) {
+                           Player *self) {
     if (g_signal_handler_find(self, G_SIGNAL_MATCH_ID,
                               signals[SIGNAL_MUTE_CHANGED], 0, NULL, NULL, NULL) != 0) {
         player_signal_dispatcher_dispatch(self->signal_dispatcher, self,
@@ -2335,7 +2335,7 @@ static gpointer player_init_once(G_GNUC_UNUSED gpointer user_data) {
  *
  * Creates a new #Player instance that uses @signal_dispatcher to dispatch
  * signals to some event loop system, or emits signals directly if NULL is
- * passed. See player_g_main_context_signal_dispatcher_new().
+ * passed. See player_main_context_signal_dispatcher_new().
  *
  * Returns: (transfer full): a new #Player instance
  */
@@ -2759,7 +2759,7 @@ static void remove_seek_source(Player *self) {
  * Returns: (transfer full): a string containing the URI of the
  * currently-playing stream. g_free() after usage.
  */
-gchar * player_get_uri(Player *player) {
+gchar *player_get_uri(Player *player) {
     gchar *val;
 
     g_return_val_if_fail (GST_IS_PLAYER(player), DEFAULT_URI);
@@ -2884,7 +2884,7 @@ void player_set_mute(Player *self, gboolean val) {
  *
  * Returns: (transfer full): The internal playbin instance
  */
-GstElement * player_get_pipeline(Player *self) {
+GstElement *player_get_pipeline(Player *self) {
     GstElement *val;
 
     g_return_val_if_fail (GST_IS_PLAYER(self), NULL);
@@ -2904,7 +2904,7 @@ GstElement * player_get_pipeline(Player *self) {
  *
  * The caller should free it with g_object_unref()
  */
-PlayerMediaInfo * player_get_media_info(Player *self) {
+PlayerMediaInfo *player_get_media_info(Player *self) {
     PlayerMediaInfo *info;
 
     g_return_val_if_fail (GST_IS_PLAYER(self), NULL);
@@ -2929,7 +2929,7 @@ PlayerMediaInfo * player_get_media_info(Player *self) {
  *
  * The caller should free it with g_object_unref()
  */
-PlayerAudioInfo * player_get_current_audio_track(Player *self) {
+PlayerAudioInfo *player_get_current_audio_track(Player *self) {
     PlayerAudioInfo *info;
 
     g_return_val_if_fail (GST_IS_PLAYER(self), NULL);
@@ -3270,9 +3270,8 @@ player_config_get_user_agent(const GstStructure *config) {
  * pass 0 to stop updating the position.
  * Since: 1.10
  */
-void
-player_config_set_position_update_interval(GstStructure *config,
-                                           guint interval) {
+void player_config_set_position_update_interval(GstStructure *config,
+                                                guint interval) {
     g_return_if_fail (config != NULL);
     g_return_if_fail (interval <= 10000);
 
@@ -3288,14 +3287,16 @@ player_config_set_position_update_interval(GstStructure *config,
  *
  * Since: 1.10
  */
-guint
-player_config_get_position_update_interval(const GstStructure *config) {
+guint player_config_get_position_update_interval(const GstStructure *config) {
     guint interval = DEFAULT_POSITION_UPDATE_INTERVAL_MS;
 
     g_return_val_if_fail (config != NULL, DEFAULT_POSITION_UPDATE_INTERVAL_MS);
 
     gst_structure_id_get(config,
-                         CONFIG_QUARK (POSITION_INTERVAL_UPDATE), G_TYPE_UINT, &interval, NULL);
+                         CONFIG_QUARK (POSITION_INTERVAL_UPDATE),
+                         G_TYPE_UINT,
+                         &interval,
+                         NULL);
 
     return interval;
 }
@@ -3340,7 +3341,10 @@ player_config_get_seek_accurate(const GstStructure *config) {
     g_return_val_if_fail (config != NULL, FALSE);
 
     gst_structure_id_get(config,
-                         CONFIG_QUARK (ACCURATE_SEEK), G_TYPE_BOOLEAN, &accurate, NULL);
+                         CONFIG_QUARK (ACCURATE_SEEK),
+                         G_TYPE_BOOLEAN,
+                         &accurate,
+                         NULL);
 
     return accurate;
 }

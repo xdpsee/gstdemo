@@ -2,7 +2,7 @@
 #define __GST_PLAYER_MEDIA_INFO_H__
 
 #include <gst/gst.h>
-#include "player-prelude.h"
+#include "PlayerPrelude.h"
 
 G_BEGIN_DECLS
 

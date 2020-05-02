@@ -14,10 +14,10 @@ pkg_check_modules(GST REQUIRED gstreamer-pbutils-1.0)
 pkg_check_modules(GST REQUIRED gstreamer-tag-1.0)
 add_executable(gstdemo
         playback.c
-        player.c
-        player-media-info.c
-        player-g-main-context-signal-dispatcher.c
-        player-signal-dispatcher.c)
+        Player.c
+        MediaInfo.c
+        PlayerMainContextSignalDispatcher.c
+        PlayerSignalDispatcher.c)
 
 # GStreamer
 target_include_directories(gstdemo PUBLIC ${GST_INCLUDE_DIRS})

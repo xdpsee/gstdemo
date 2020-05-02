@@ -2,8 +2,8 @@
 #include "config.h"
 #endif
 
-#include "player-media-info.h"
-#include "player-media-info-private.h"
+#include "MediaInfo.h"
+#include "MediaInfoPrivate.h"
 
 /* Per-stream information */
 G_DEFINE_ABSTRACT_TYPE (PlayerStreamInfo, player_stream_info,
@@ -489,18 +489,6 @@ guint player_media_info_get_number_of_streams(const PlayerMediaInfo *info) {
 guint player_media_info_get_number_of_audio_streams(const PlayerMediaInfo *info) {
     g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), 0);
     return g_list_length(info->audio_stream_list);
-}
-
-/**
- * player_media_info_get_number_of_subtitle_streams:
- * @info: a #PlayerMediaInfo
- *
- * Returns: number of subtitle streams.
- * Since: 1.12
- */
-guint player_media_info_get_number_of_subtitle_streams(const PlayerMediaInfo *info) {
-    g_return_val_if_fail (GST_IS_PLAYER_MEDIA_INFO(info), 0);
-    return g_list_length(info->subtitle_stream_list);
 }
 
 /**

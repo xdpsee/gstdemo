@@ -2,10 +2,10 @@
 #define __GST_PLAYER_H__
 
 #include <gst/gst.h>
-#include "player-prelude.h"
-#include "player-types.h"
-#include "player-media-info.h"
-#include "player-signal-dispatcher.h"
+#include "PlayerPrelude.h"
+#include "PlayerTypes.h"
+#include "MediaInfo.h"
+#include "PlayerSignalDispatcher.h"
 
 G_BEGIN_DECLS
 

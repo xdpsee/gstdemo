@@ -2,7 +2,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "player.h"
+#include "Player.h"
 
 #define VOLUME_STEPS 20
 
@@ -72,18 +72,15 @@ static void position_updated_cb(Player *player, GstClockTime pos, Playback *play
     }
 }
 
-static void
-state_changed_cb(Player *player, PlayerState state, Playback *playback) {
+static void state_changed_cb(Player *player, PlayerState state, Playback *playback) {
     g_print("State changed: %s\n", player_state_get_name(state));
 }
 
-static void
-buffering_cb(Player *player, gint percent, Playback *playback) {
+static void buffering_cb(Player *player, gint percent, Playback *playback) {
     g_print("Buffering: %d\n", percent);
 }
 
-static void
-print_one_tag(const GstTagList *list, const gchar *tag, gpointer user_data) {
+static void print_one_tag(const GstTagList *list, const gchar *tag, gpointer user_data) {
     gint i, num;
 
     num = gst_tag_list_get_tag_size(list, tag);
@@ -224,7 +221,7 @@ static Playback *playback_new(gchar **uris, gdouble initial_volume) {
     playback->cur_idx = -1;
 
     playback->player =
-            player_new(player_g_main_context_signal_dispatcher_new
+            player_new(player_main_context_signal_dispatcher_new
                                (NULL));
     player_set_video_track_enabled(playback->player, FALSE);
     player_set_subtitle_track_enabled(playback->player, FALSE);
