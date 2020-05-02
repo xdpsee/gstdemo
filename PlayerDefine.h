@@ -1,5 +1,5 @@
-#ifndef __GST_PLAYER_H__
-#define __GST_PLAYER_H__
+#ifndef __PLAYER_H__
+#define __PLAYER_H__
 
 #include <gst/gst.h>
 #include "PlayerPrelude.h"
@@ -55,7 +55,6 @@ const gchar *player_error_get_name(PlayerError error);
 #define GST_PLAYER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GST_TYPE_PLAYER, PlayerClass))
 #define GST_PLAYER_CAST(obj)        ((GstPlayer*)(obj))
 
-
 GType player_get_type(void);
 
 Player *player_new(PlayerSignalDispatcher *signal_dispatcher);
@@ -66,92 +65,58 @@ void player_pause(Player *player);
 
 void player_stop(Player *player);
 
-void player_seek(Player *player,
-                 GstClockTime position);
+void player_seek(Player *player, GstClockTime position);
 
-void player_set_rate(Player *player,
-                     gdouble rate);
+void player_set_rate(Player *player, gdouble rate);
 
 gdouble player_get_rate(Player *player);
 
 gchar *player_get_uri(Player *player);
 
-
-void player_set_uri(Player *player,
-                    const gchar *uri);
-
+void player_set_uri(Player *player, const gchar *uri);
 
 GstClockTime player_get_position(Player *player);
 
-
 GstClockTime player_get_duration(Player *player);
-
 
 gdouble player_get_volume(Player *player);
 
-
-void player_set_volume(Player *player,
-                       gdouble val);
-
+void player_set_volume(Player *player, gdouble val);
 
 gboolean player_get_mute(Player *player);
 
-
-void player_set_mute(Player *player,
-                     gboolean val);
-
+void player_set_mute(Player *player, gboolean val);
 
 GstElement *player_get_pipeline(Player *player);
 
+void player_set_video_track_enabled(Player *player, gboolean enabled);
 
-void player_set_video_track_enabled(Player *player,
-                                    gboolean enabled);
+void player_set_audio_track_enabled(Player *player, gboolean enabled);
 
+void player_set_subtitle_track_enabled(Player *player, gboolean enabled);
 
-void player_set_audio_track_enabled(Player *player,
-                                    gboolean enabled);
-
-
-void player_set_subtitle_track_enabled(Player *player,
-                                       gboolean enabled);
-
-
-gboolean player_set_audio_track(Player *player,
-                                gint stream_index);
+gboolean player_set_audio_track(Player *player, gint stream_index);
 
 PlayerMediaInfo *player_get_media_info(Player *player);
 
-
 PlayerAudioInfo *player_get_current_audio_track(Player *player);
 
-gboolean player_set_config(Player *player,
-                           GstStructure *config);
-
+gboolean player_set_config(Player *player, GstStructure *config);
 
 GstStructure *player_get_config(Player *player);
 
-/* helpers for configuring the config structure */
-
-
-void player_config_set_user_agent(GstStructure *config,
-                                  const gchar *agent);
-
+void player_config_set_user_agent(GstStructure *config, const gchar *agent);
 
 gchar *player_config_get_user_agent(const GstStructure *config);
 
-
-void player_config_set_position_update_interval(GstStructure *config,
-                                                guint interval);
-
+void player_config_set_position_update_interval(GstStructure *config, guint interval);
 
 guint player_config_get_position_update_interval(const GstStructure *config);
 
-
 void player_config_set_seek_accurate(GstStructure *config, gboolean accurate);
-
 
 gboolean player_config_get_seek_accurate(const GstStructure *config);
 
 G_END_DECLS
 
-#endif /* __GST_PLAYER_H__ */
+#endif /* __PLAYER_H__ */

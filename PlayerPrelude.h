@@ -1,5 +1,5 @@
-#ifndef __GST_PLAYER_PRELUDE_H__
-#define __GST_PLAYER_PRELUDE_H__
+#ifndef __PLAYER_PRELUDE_H__
+#define __PLAYER_PRELUDE_H__
 
 #include <gst/gst.h>
 
@@ -19,4 +19,4 @@
 #define GST_PLAYER_DEPRECATED_FOR(f) G_DEPRECATED_FOR(f) GST_PLAYER_API
 #endif
 
-#endif /* __GST_PLAYER_PRELUDE_H__ */
+#endif /* __PLAYER_PRELUDE_H__ */

@@ -1,9 +1,9 @@
-#ifndef __PLAYER_H__
-#define __PLAYER_H__
+#ifndef __PLAYER_DEFINE_H__
+#define __PLAYER_DEFINE_H__
 
 #include "PlayerPrelude.h"
 #include "PlayerDefine.h"
 #include "MediaInfo.h"
 #include "PlayerMainContextSignalDispatcher.h"
 
-#endif /* __PLAYER_H__ */
+#endif /* __PLAYER_DEFINE_H__ */

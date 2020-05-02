@@ -555,7 +555,7 @@ main(int argc, char **argv) {
 
     if (playlist->len == 0 && (filenames == NULL || *filenames == NULL)) {
         g_printerr("Usage: %s FILE1|URI1 [FILE2|URI2] [FILE3|URI3] ...",
-                   "gst-play");
+                   "audio-player");
         g_printerr("\n\n"),
                 g_printerr("%s\n\n",
                            "You must provide at least one filename or URI to play.");
