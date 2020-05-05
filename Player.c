@@ -319,7 +319,7 @@ static void player_class_init(PlayerClass *klass) {
                                 GST_TYPE_ELEMENT, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
     param_specs[PROP_RATE] =
-            g_param_spec_double("rate", "rate", "Playback rate",
+            g_param_spec_double("rate", "rate", "MediaPlayback rate",
                                 -64.0, 64.0, DEFAULT_RATE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
 
     g_object_class_install_properties(gobject_class, PROP_LAST, param_specs);

@@ -20,17 +20,17 @@ typedef struct {
     gboolean repeat;
 
     GMainLoop *loop;
-} Playback;
+} MediaPlayback;
 
-static gboolean play_next(Playback *playback);
+static gboolean play_next(MediaPlayback *playback);
 
-static gboolean play_prev(Playback *playback);
+static gboolean play_prev(MediaPlayback *playback);
 
-static void playback_reset(Playback *playback);
+static void playback_reset(MediaPlayback *playback);
 
-static void playback_set_relative_volume(Playback *playback, gdouble volume_step);
+static void playback_set_relative_volume(MediaPlayback *playback, gdouble volume_step);
 
-static void end_of_stream_cb(Player *player, Playback *playback) {
+static void end_of_stream_cb(Player *player, MediaPlayback *playback) {
     g_print("\n");
     /* and switch to next item in list */
     if (!play_next(playback)) {
@@ -39,7 +39,7 @@ static void end_of_stream_cb(Player *player, Playback *playback) {
     }
 }
 
-static void error_cb(Player *player, GError *err, Playback *playback) {
+static void error_cb(Player *player, GError *err, MediaPlayback *playback) {
     g_printerr("ERROR %s for %s\n", err->message, playback->uris[playback->cur_idx]);
 
     /* if looping is enabled, then disable it else will keep looping forever */
@@ -52,7 +52,7 @@ static void error_cb(Player *player, GError *err, Playback *playback) {
     }
 }
 
-static void position_updated_cb(Player *player, GstClockTime pos, Playback *play) {
+static void position_updated_cb(Player *player, GstClockTime pos, MediaPlayback *play) {
     GstClockTime dur = -1;
     gchar status[64] = {0,};
 
@@ -72,11 +72,11 @@ static void position_updated_cb(Player *player, GstClockTime pos, Playback *play
     }
 }
 
-static void state_changed_cb(Player *player, PlayerState state, Playback *playback) {
+static void state_changed_cb(Player *player, PlayerState state, MediaPlayback *playback) {
     g_print("State changed: %s\n", player_state_get_name(state));
 }
 
-static void buffering_cb(Player *player, gint percent, Playback *playback) {
+static void buffering_cb(Player *player, gint percent, MediaPlayback *playback) {
     g_print("Buffering: %d\n", percent);
 }
 
@@ -175,7 +175,7 @@ print_all_audio_stream(PlayerMediaInfo *media_info) {
 }
 
 static void
-print_current_tracks(Playback *playback) {
+print_current_tracks(MediaPlayback *playback) {
     PlayerAudioInfo *audio = NULL;
 
     g_print("Current audio track: \n");
@@ -194,7 +194,7 @@ print_media_info(PlayerMediaInfo *media_info) {
     g_print("\n");
 }
 
-static void media_info_cb(Player *player, PlayerMediaInfo *info, Playback *playback) {
+static void media_info_cb(Player *player, PlayerMediaInfo *info, MediaPlayback *playback) {
     static int once = 0;
 
     if (!once) {
@@ -204,10 +204,10 @@ static void media_info_cb(Player *player, PlayerMediaInfo *info, Playback *playb
     }
 }
 
-static Playback *playback_new(gchar **uris, gdouble initial_volume) {
-    Playback *playback;
+static MediaPlayback *playback_new(gchar **uris, gdouble initial_volume) {
+    MediaPlayback *playback;
 
-    playback = g_new0 (Playback, 1);
+    playback = g_new0 (MediaPlayback, 1);
 
     playback->uris = uris;
     playback->num_uris = g_strv_length(uris);
@@ -239,7 +239,7 @@ static Playback *playback_new(gchar **uris, gdouble initial_volume) {
     return playback;
 }
 
-static void playback_free(Playback *play) {
+static void playback_free(MediaPlayback *play) {
     playback_reset(play);
 
     gst_object_unref(play->player);
@@ -251,11 +251,11 @@ static void playback_free(Playback *play) {
 }
 
 /* reset for new file/stream */
-static void playback_reset(Playback *playback) {
+static void playback_reset(MediaPlayback *playback) {
 
 }
 
-static void playback_set_relative_volume(Playback *playback, gdouble volume_step) {
+static void playback_set_relative_volume(MediaPlayback *playback, gdouble volume_step) {
     gdouble volume;
 
     g_object_get(playback->player, "volume", &volume, NULL);
@@ -267,7 +267,7 @@ static void playback_set_relative_volume(Playback *playback, gdouble volume_step
     g_print("Volume: %.0f%%                  \n", volume * 100);
 }
 
-static gchar *playback_uri_get_display_name(Playback *playback, const gchar *uri) {
+static gchar *playback_uri_get_display_name(MediaPlayback *playback, const gchar *uri) {
     gchar *loc;
 
     if (gst_uri_has_protocol(uri, "file")) {
@@ -283,7 +283,7 @@ static gchar *playback_uri_get_display_name(Playback *playback, const gchar *uri
 }
 
 static void
-play_uri(Playback *playback, const gchar *next_uri) {
+play_uri(MediaPlayback *playback, const gchar *next_uri) {
     gchar *loc;
 
     playback_reset(playback);
@@ -298,7 +298,7 @@ play_uri(Playback *playback, const gchar *next_uri) {
 
 /* returns FALSE if we have reached the end of the playlist */
 static gboolean
-play_next(Playback *playback) {
+play_next(MediaPlayback *playback) {
     if ((playback->cur_idx + 1) >= playback->num_uris) {
         if (playback->repeat) {
             g_print("Looping playlist \n");
@@ -313,7 +313,7 @@ play_next(Playback *playback) {
 
 /* returns FALSE if we have reached the beginning of the playlist */
 static gboolean
-play_prev(Playback *playback) {
+play_prev(MediaPlayback *playback) {
     if (playback->cur_idx == 0 || playback->num_uris <= 1)
         return FALSE;
 
@@ -322,7 +322,7 @@ play_prev(Playback *playback) {
 }
 
 static void
-do_play(Playback *playback) {
+do_play(MediaPlayback *playback) {
     gint i;
 
     /* dump playlist */
@@ -385,7 +385,7 @@ shuffle_uris(gchar **uris, guint num) {
 }
 
 static void
-toggle_paused(Playback *playback) {
+toggle_paused(MediaPlayback *playback) {
     if (playback->desired_state == GST_STATE_PLAYING) {
         playback->desired_state = GST_STATE_PAUSED;
         player_pause(playback->player);
@@ -396,7 +396,7 @@ toggle_paused(Playback *playback) {
 }
 
 static void
-relative_seek(Playback *playback, gdouble percent) {
+relative_seek(MediaPlayback *playback, gdouble percent) {
     gint64 dur = -1, pos = -1;
 
     g_return_if_fail (percent >= -1.0 && percent <= 1.0);
@@ -416,7 +416,7 @@ relative_seek(Playback *playback, gdouble percent) {
 
 static void
 keyboard_cb(const gchar *key_input, gpointer user_data) {
-    Playback *play = (Playback *) user_data;
+    MediaPlayback *play = (MediaPlayback *) user_data;
 
     switch (g_ascii_tolower(key_input[0])) {
         case 'i': {
@@ -470,7 +470,7 @@ keyboard_cb(const gchar *key_input, gpointer user_data) {
 
 int
 main(int argc, char **argv) {
-    Playback *playback;
+    MediaPlayback *playback;
     GPtrArray *playlist;
     gboolean print_version = FALSE;
     gboolean interactive = TRUE; /* FIXME: maybe enable by default? */
